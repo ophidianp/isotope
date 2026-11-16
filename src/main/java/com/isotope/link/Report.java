@@ -19,6 +19,7 @@ public final class Report {
 		MISSING_METHOD("method no longer exists (or its signature changed)", true),
 		MISSING_FIELD("field no longer exists (or its type changed)", true),
 		SHAPE_CHANGED("class changed shape - the JVM refuses to load these classes at all", true),
+		UNVERIFIABLE("methods that need a class this version no longer has - replaced so the rest of their class still loads; they throw if called", true),
 		NOT_IMPLEMENTED("abstract method the mod does not implement (new or changed)", true),
 		MIXIN_TARGET("mixin target is gone", true),
 		NOT_INSTALLED("classes from a mod or library that is not installed (often an optional integration)", false),
@@ -42,6 +43,8 @@ public final class Report {
 	public int referencesRedirected;
 	public int callsRepaired;
 	public int mixinsDropped;
+	public int methodsReplaced;
+	public int dataFilesMigrated;
 	public final List<String> notes = new ArrayList<>();
 	/** Removed game APIs whose uses were replaced with a default value. */
 	public final Set<String> stubs = new TreeSet<>();
@@ -106,6 +109,8 @@ public final class Report {
 				.append(classesTotal).append(" classes rewritten");
 		if (callsRepaired > 0) sb.append(", ").append(callsRepaired).append(" calls repaired (class <-> interface)");
 		if (mixinsDropped > 0) sb.append(", ").append(mixinsDropped).append(" mixins dropped");
+		if (methodsReplaced > 0) sb.append(", ").append(methodsReplaced).append(" unloadable methods replaced");
+		if (dataFilesMigrated > 0) sb.append(", ").append(dataFilesMigrated).append(" data files converted");
 		sb.append('\n');
 		sb.append("   verdict: ").append(verdict()).append('\n');
 		for (String n : notes) sb.append("   note: ").append(n).append('\n');

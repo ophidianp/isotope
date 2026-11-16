@@ -25,6 +25,7 @@ import com.isotope.rewrite.Selector;
  */
 public final class MixinCheck {
 	private static final String SHADOW = "Lorg/spongepowered/asm/mixin/Shadow;";
+	private static final String LOCAL_CAPTURE = "Lorg/spongepowered/asm/mixin/injection/callback/LocalCapture;";
 	private static final String OVERWRITE = "Lorg/spongepowered/asm/mixin/Overwrite;";
 
 	private MixinCheck() { }
@@ -175,7 +176,11 @@ public final class MixinCheck {
 		return out;
 	}
 
-	/** Lenient mode: turns an explicit {@code require = N} into {@code require = 0} so a miss is logged, not fatal. */
+	/**
+	 * Lenient mode: turns an explicit {@code require = N} into {@code require = 0}, and hard
+	 * local-capture failures into {@code CAPTURE_FAILSOFT}, so a hook that no longer fits is
+	 * logged and skipped instead of crashing the game.
+	 */
 	public static boolean relaxRequire(ClassNode cn) {
 		boolean changed = false;
 
@@ -186,6 +191,15 @@ public final class MixinCheck {
 				for (int i = 0; i + 1 < an.values.size(); i += 2) {
 					if ("require".equals(an.values.get(i)) && an.values.get(i + 1) instanceof Integer n && n > 0) {
 						an.values.set(i + 1, 0);
+						changed = true;
+					}
+
+					// An injector that captures the target method's local variables fails hard when the
+					// game changed that method's locals. Mixin's own soft mode skips just that injection
+					// with a warning instead, which is what lenient mode promises.
+					if ("locals".equals(an.values.get(i)) && an.values.get(i + 1) instanceof String[] e && e.length == 2
+							&& e[0].equals(LOCAL_CAPTURE) && (e[1].equals("CAPTURE_FAILHARD") || e[1].equals("CAPTURE_FAILEXCEPTION"))) {
+						an.values.set(i + 1, new String[] {LOCAL_CAPTURE, "CAPTURE_FAILSOFT"});
 						changed = true;
 					}
 				}

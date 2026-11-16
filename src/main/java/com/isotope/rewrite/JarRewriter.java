@@ -147,6 +147,25 @@ public final class JarRewriter {
 						}
 					}
 
+					// Data files (loot tables, advancements, ...) change format between versions too.
+					if (DataMigrator.supports(hopVersions[0], hopVersions[1])) {
+						for (Map.Entry<String, byte[]> e : u.entries.entrySet()) {
+							if (!e.getKey().startsWith("data/") || !e.getKey().endsWith(".json")) continue;
+
+							try {
+								Object before = Json.parse(new String(e.getValue(), StandardCharsets.UTF_8));
+								Object after = DataMigrator.migrate(e.getKey(), before, hopVersions[0], hopVersions[1]);
+
+								if (!Json.write(after).equals(Json.write(before))) {
+									e.setValue(Json.write(after).getBytes(StandardCharsets.UTF_8));
+									report.dataFilesMigrated++;
+								}
+							} catch (RuntimeException ex) {
+								// Not valid JSON to our reader: leave the file exactly as it was.
+							}
+						}
+					}
+
 					for (String key : new String[] {"accessWidener", "classTweaker"}) {
 						if (u.json != null && u.json.get(key) instanceof String path && u.entries.containsKey(path)) {
 							String text = new String(u.entries.get(path), StandardCharsets.UTF_8);
@@ -191,6 +210,34 @@ public final class JarRewriter {
 		LiveIndex index = o.index.withFirst(ownClasses::get);
 		Linker linker = new Linker(index, report, o.dedicatedServer);
 		Set<String> deadMixins = new HashSet<>();
+
+		// --- methods that would stop their whole class from loading (see VerifyCheck)
+		for (Unit u : units) {
+			for (Map.Entry<String, byte[]> e : u.entries.entrySet()) {
+				if (!isClass(e.getKey())) continue;
+
+				try {
+					com.isotope.link.VerifyCheck.Result v = com.isotope.link.VerifyCheck.check(e.getValue(), index, o.lenientMixins,
+							"cannot run on Minecraft " + report.toVersion);
+					if (v.replaced.isEmpty()) continue;
+					String cls = e.getKey().substring(0, e.getKey().length() - 6);
+
+					for (Map.Entry<String, Set<String>> m : v.replaced.entrySet()) {
+						String what = cls.replace('/', '.') + "." + m.getKey().substring(0, m.getKey().indexOf('('));
+						report.problem(Report.Kind.UNVERIFIABLE, what + "  (needs " + String.join(", ", m.getValue()).replace('/', '.') + ")", cls);
+						// So the startup check knows: running this method now certainly throws.
+						linker.problemsByMethod.computeIfAbsent(cls + ' ' + m.getKey(), k -> new ArrayList<>())
+								.add("(replaced: needs " + String.join(", ", m.getValue()).replace('/', '.') + ")");
+					}
+
+					report.methodsReplaced += v.replaced.size();
+					e.setValue(v.bytes);
+					if (!e.getKey().startsWith("META-INF/")) ownClasses.put(cls, v.bytes);
+				} catch (RuntimeException ex) {
+					report.notes.add("could not verify " + e.getKey() + " (" + ex + ")");
+				}
+			}
+		}
 
 		for (Unit u : units) {
 			for (Map.Entry<String, byte[]> e : u.entries.entrySet()) {
