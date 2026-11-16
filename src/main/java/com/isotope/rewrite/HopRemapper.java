@@ -123,6 +123,17 @@ public final class HopRemapper extends ClassRemapper {
 					return;
 				}
 
+				// Registrations go through Isotope's bridge in steps where a "type object" became a codec,
+				// so a type object is registered as its codec where the registry now holds codecs.
+				if (!hop.table.interfaceRules.isEmpty() && mv != null && (opcodeAndSource & 0xFF) == Opcodes.INVOKESTATIC
+						&& owner.equals("net/minecraft/core/Registry") && name.equals("register")
+						&& Type.getArgumentTypes(descriptor).length == 3 && descriptor.endsWith("Ljava/lang/Object;)Ljava/lang/Object;")) {
+					mv.visitMethodInsn(Opcodes.INVOKESTATIC, "com/isotope/runtime/Bridge", "register",
+							"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
+					changes[0]++;
+					return;
+				}
+
 				Member rule = hop.resolveMethod(owner, name, descriptor);
 
 				if (rule != null && rule.newDesc() != null && mv != null) {

@@ -25,6 +25,8 @@ import com.isotope.model.RedirectTable.Member;
  */
 public final class Hop {
 	public final RedirectTable table;
+	/** The classes of the running game, for rules that need to look at the new shape of a class (may be null). */
+	public com.isotope.link.LiveIndex live;
 	private final Hierarchy oldHierarchy;
 	private final Map<String, ModClass> modClasses;
 	private final Map<String, Member> methodCache = new HashMap<>();

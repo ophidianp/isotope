@@ -59,6 +59,15 @@ public final class RedirectTable {
 	public record Stub(boolean field, String owner, String name, String desc, String reason) { }
 
 	private final Map<String, Stub> stubs = new LinkedHashMap<>();
+	/**
+	 * A game class that became an interface, with its "type object" getter replaced by a method
+	 * returning the codec directly. Hand-written only ({@code x} lines). Names are the hop's old names,
+	 * except {@code newDesc}, which uses the new ones.
+	 */
+	public record InterfaceRule(String cls, String getter, String getterDesc, String newName, String newDesc) { }
+
+	public final List<InterfaceRule> interfaceRules = new ArrayList<>();
+
 	/** Static methods that moved to another class: "owner name desc" -> new owner. Hand-written only ({@code at=}). */
 	private final Map<String, String> movedTo = new LinkedHashMap<>();
 
@@ -202,6 +211,7 @@ public final class RedirectTable {
 					if (at != null) t.movedTo.put(p[1] + ' ' + p[2] + ' ' + p[3], at);
 				}
 				case "f" -> t.addField(new Member(p[1], p[2], p[3], p[4], null, false, p.length > 5 && p[5].equals("private")));
+				case "x" -> t.interfaceRules.add(new InterfaceRule(p[1], p[2], p[3], p[4], p[5]));
 				case "s" -> {
 					// s m|f <owner> <name> <desc> <reason ...>
 					if (!p[1].equals("m") && !p[1].equals("f")) throw new IOException("line " + lineNo + ": stub kind must be m or f");

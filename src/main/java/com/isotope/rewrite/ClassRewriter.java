@@ -24,6 +24,25 @@ public final class ClassRewriter {
 		// used to return void). Stack map frames are kept as written; renaming never invalidates them.
 		ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		node.accept(new HopRemapper(writer, hop, changes, stubsUsed));
-		return changes[0] == before ? classBytes : writer.toByteArray();
+		byte[] out = changes[0] == before ? classBytes : writer.toByteArray();
+
+		// Game classes that became interfaces (hand-written "x" rules): adapt direct subclasses.
+		for (com.isotope.model.RedirectTable.InterfaceRule rule : hop.table.interfaceRules) {
+			String iface = hop.table.mapClass(rule.cls());
+			ClassNode cn = new ClassNode();
+			new ClassReader(out).accept(cn, 0);
+			if (cn.superName == null || !cn.superName.equals(iface)) continue;
+			com.isotope.model.ClassInfo info = hop.live != null ? hop.live.get(iface) : null;
+
+			if (InterfaceBridge.apply(cn, new com.isotope.model.RedirectTable.InterfaceRule(rule.cls(), rule.getter(),
+					hop.mapDesc(rule.getterDesc()), rule.newName(), rule.newDesc()), iface, info)) {
+				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				cn.accept(w);
+				out = w.toByteArray();
+				changes[0]++;
+			}
+		}
+
+		return out;
 	}
 }

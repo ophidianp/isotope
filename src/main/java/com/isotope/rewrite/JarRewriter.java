@@ -130,6 +130,7 @@ public final class JarRewriter {
 				}
 
 				Hop hop = new Hop(o.graph.table(hopVersions[0], hopVersions[1]), o.graph.hierarchy(hopVersions[0]), modClasses);
+				hop.live = o.index;
 
 				for (Unit u : units) {
 					for (Map.Entry<String, byte[]> e : u.entries.entrySet()) {
