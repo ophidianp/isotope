@@ -8,7 +8,9 @@
     "ophidianp"
   ],
   "contact": {
-    "sources": "https://github.com/ophidianp/chlorine/tree/isotope"
+    "homepage": "https://ophidianp.github.io/isotope/",
+    "sources": "https://github.com/ophidianp/isotope",
+    "issues": "https://github.com/ophidianp/isotope/issues"
   },
   "license": "All-Rights-Reserved",
   "icon": "assets/isotope/icon.png",

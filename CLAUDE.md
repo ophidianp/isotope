@@ -6,11 +6,19 @@ It rewrites the other mod's bytecode, mixin strings, access wideners and
 metadata at game start. Most of the code is AI-assisted; the maintainer tests
 every build and wants to learn the code, so explain non-obvious changes.
 
-## Branch (important)
-- This branch (`isotope`, in the `ophidianp/chlorine` repo) holds ONLY Isotope.
-  It shares no history with `main` (Chlorine) or the website branch and will
-  move to its own `ophidianp/isotope` repo later. Never merge it into `main`,
-  never copy Chlorine files in, never create extra branches unless asked.
+## Repository and branches (important)
+- Repo: `ophidianp/isotope`. It started as the `isotope` branch of
+  `ophidianp/chlorine` (history kept); that branch is now only a leftover.
+- `main` = the MOD source only.
+- `website` = the WEBSITE only (plain static HTML/CSS/JS at the branch root,
+  same design as the Chlorine site, deployed to GitHub Pages at
+  https://ophidianp.github.io/isotope/ by `.github/workflows/pages.yml`).
+- Website changes go on `website`, mod changes on `main`. Never mix them in one
+  commit. Never create extra branches unless asked.
+- If you change `site.css`, `site.js`, `isotope.js` or `releases.js` on the
+  website branch, bump the `?v=` cache key on the matching tag in every page.
+- Releases: attach the mod `.jar` (not `-sources.jar`); the download page
+  shows the newest release with a jar, pre-releases included.
 - Mod ID / package: `isotope` / `com.isotope`. Brand: violet `#B79CF0`,
   white atom glyph (`branding/icon.svg`).
 

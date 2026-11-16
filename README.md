@@ -10,6 +10,8 @@ tells you up front what it could not bridge.
 It works in both directions: an older mod on a newer game (a 26.1.2 mod on
 26.3) and a newer mod on an older game (a 26.3 mod on 26.2).
 
+Website: https://ophidianp.github.io/isotope/ · Downloads: [GitHub Releases](https://github.com/ophidianp/isotope/releases)
+
 > **Status: 0.1.0, early.** Boot-tested on a 26.3 dedicated server with real
 > 26.1.x mods from Modrinth (results below). **Not tested on a client yet.**
 > Read [What it cannot do](#what-it-cannot-do) before expecting any particular
