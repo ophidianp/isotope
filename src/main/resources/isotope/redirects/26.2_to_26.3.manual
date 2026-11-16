@@ -29,3 +29,19 @@ f net/minecraft/world/level/material/PushReaction BLOCK Lnet/minecraft/world/lev
 f net/minecraft/world/level/material/PushReaction NORMAL Lnet/minecraft/world/level/material/PushReaction; PUSH_PULL
 f net/minecraft/world/level/material/PushReaction IGNORE Lnet/minecraft/world/level/material/PushReaction; IGNORE_ENTITY
 f net/minecraft/world/level/material/PushReaction PUSH_ONLY Lnet/minecraft/world/level/material/PushReaction; PUSH
+
+# Registry codec helpers moved and were renamed in 26.3 (checked with javap against both jars):
+#   net.minecraft.core.RegistryCodecs -> net.minecraft.core.registries.codec.RegistryCodecs
+#   homogeneousList(...) -> holderSet(...): same four overloads, same parameters, and the
+#     short overloads pass the same defaults (false), so the calls are equivalent.
+#   RegistryFileCodec.create(key, codec) was create(key, codec, true); in 26.3 that shortcut is
+#     RegistryCodecs.holder(key, codec), which also passes true. Both new methods return the wider
+#     Codec type, but the object is still a RegistryFileCodec (holder -> RegistryFileCodec.create
+#     -> new RegistryFileCodec), so casting back to what the mod expects is safe.
+c net/minecraft/core/RegistryCodecs net/minecraft/core/registries/codec/RegistryCodecs
+m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;Z)Lcom/mojang/serialization/Codec; holderSet
+m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec; holderSet
+m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/ResourceKey;)Lcom/mojang/serialization/Codec; holderSet
+m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/ResourceKey;Z)Lcom/mojang/serialization/Codec; holderSet
+m net/minecraft/resources/RegistryFileCodec create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;)Lnet/minecraft/resources/RegistryFileCodec; holder (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec; cast at=net/minecraft/core/registries/codec/RegistryCodecs
+m net/minecraft/resources/RegistryFileCodec create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;Z)Lnet/minecraft/resources/RegistryFileCodec; create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;Z)Lcom/mojang/serialization/Codec; cast

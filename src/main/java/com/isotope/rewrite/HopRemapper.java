@@ -127,11 +127,14 @@ public final class HopRemapper extends ClassRemapper {
 
 				if (rule != null && rule.newDesc() != null && mv != null) {
 					String plain = remapper.mapMethodDesc(descriptor);
+					// A static method that moved to another class (hand-written rules only).
+					String movedTo = (opcodeAndSource & 0xFF) == Opcodes.INVOKESTATIC ? hop.table.newOwner(rule) : null;
 
-					if (!plain.equals(rule.newDesc())) {
+					if (!plain.equals(rule.newDesc()) || movedTo != null) {
 						// The signature changed in a way the caller cannot notice. Emit the call with the
 						// new signature straight to the output, skipping ASM's own (rename-only) mapping.
-						mv.visitMethodInsn(opcodeAndSource, remapper.mapType(owner), rule.newName(), rule.newDesc(), isInterface);
+						mv.visitMethodInsn(opcodeAndSource, movedTo != null ? movedTo : remapper.mapType(owner), rule.newName(), rule.newDesc(),
+								movedTo != null ? false : isInterface);
 						Type oldRet = Type.getReturnType(plain);
 						Type newRet = Type.getReturnType(rule.newDesc());
 

@@ -20,7 +20,7 @@ import java.util.Map;
  * from 26.2
  * to 26.3
  * c &lt;oldClass&gt; &lt;newClass&gt;                         a class moved or was renamed
- * m &lt;owner&gt; &lt;name&gt; &lt;desc&gt; &lt;newName&gt; [newDesc] [cast] [private]  a method was renamed / its signature changed compatibly
+ * m &lt;owner&gt; &lt;name&gt; &lt;desc&gt; &lt;newName&gt; [newDesc] [cast] [private] [at=newOwner]  a method was renamed / its signature changed compatibly / a static method moved class
  * f &lt;owner&gt; &lt;name&gt; &lt;desc&gt; &lt;newName&gt; [private]                a field was renamed
  * s m|f &lt;owner&gt; &lt;name&gt; &lt;desc&gt; &lt;reason...&gt;          a removed member; uses get a default value (hand-written only)
  * </pre>
@@ -59,6 +59,13 @@ public final class RedirectTable {
 	public record Stub(boolean field, String owner, String name, String desc, String reason) { }
 
 	private final Map<String, Stub> stubs = new LinkedHashMap<>();
+	/** Static methods that moved to another class: "owner name desc" -> new owner. Hand-written only ({@code at=}). */
+	private final Map<String, String> movedTo = new LinkedHashMap<>();
+
+	/** The class a static method moved to, or null if it stayed where it was. */
+	public String newOwner(Member m) {
+		return movedTo.get(m.owner() + ' ' + m.name() + ' ' + m.desc());
+	}
 
 	public void addStub(Stub stub) {
 		stubs.put((stub.field() ? "f " : "m ") + stub.owner() + ' ' + stub.name() + ' ' + stub.desc(), stub);
@@ -181,13 +188,18 @@ public final class RedirectTable {
 					boolean cast = false;
 					boolean priv = false;
 
+					String at = null;
+
 					for (int i = 5; i < p.length; i++) {
 						if (p[i].equals("cast")) cast = true;
 						else if (p[i].equals("private")) priv = true;
+						else if (p[i].startsWith("at=")) at = p[i].substring(3);
 						else newDesc = p[i];
 					}
 
+					if (at != null && newDesc == null) throw new IOException("line " + lineNo + ": a moved method (at=) needs its new descriptor");
 					t.addMethod(new Member(p[1], p[2], p[3], p[4], newDesc, cast, priv));
+					if (at != null) t.movedTo.put(p[1] + ' ' + p[2] + ' ' + p[3], at);
 				}
 				case "f" -> t.addField(new Member(p[1], p[2], p[3], p[4], null, false, p.length > 5 && p[5].equals("private")));
 				case "s" -> {
