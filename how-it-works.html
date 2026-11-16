@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0a0913">
+    <meta name="description" content="How Isotope rewrites Fabric mods between Minecraft 26.x versions, checks them, and decides what is safe to load.">
+    <title>How it works · Isotope</title>
+    <link rel="icon" type="image/png" href="assets/isotope-icon.png">
+    <script>try{document.documentElement.dataset.theme=localStorage.getItem("isotope-theme")==="light"?"light":"dark"}catch(e){}</script>
+    <link rel="stylesheet" href="assets/liquid-glass.css?v=1">
+    <link rel="stylesheet" href="assets/site.css?v=1">
+    <script src="assets/liquid-glass.js?v=1" defer></script>
+    <script src="assets/site.js?v=1" defer></script>
+    <script src="assets/isotope.js?v=1" defer></script>
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div></div>
+    <div class="scroll-progress" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Isotope home"><img src="assets/isotope-icon.png" alt="" width="30" height="30"><span>Isotope</span></a>
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="how-it-works.html" aria-current="page">How it works</a>
+        <a href="compatibility.html">Compatibility</a>
+        <a href="downloads.html">Download</a>
+        <a href="transparency.html">Transparency</a>
+      </nav>
+      <div class="header-actions">
+        <button class="theme-toggle" type="button" aria-label="Switch to light mode">
+          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <a class="btn btn-primary btn-sm" href="downloads.html">Get Isotope <span class="arrow" aria-hidden="true">↗</span></a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><span></span></button>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="page-hero wrap">
+        <p class="eyebrow" data-reveal><span class="status-dot"></span> How it works</p>
+        <h1 class="split">Read the game. <span class="grad">Rewrite the mod.</span></h1>
+        <p class="lede" data-reveal style="--d: 300ms">Since 26.1, Minecraft ships with real names in its code. That means the difference between two releases can be read straight off the game itself, and a mod can be pointed at the new names.</p>
+      </section>
+
+      <section class="section wrap" id="rules" style="padding-top: 0">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-reveal>Measured from Mojang's jars</p>
+            <h2 class="split">Most of the game stays put. <span class="dim">Some of it moves.</span></h2>
+          </div>
+          <p data-reveal>Isotope's table generator compares two game jars. Anything in the old one but not the new one is "missing", and it tries to prove where each missing thing went.</p>
+        </div>
+        <div class="results" data-stagger>
+          <article class="result">
+            <span class="card-tag">26.1.2 → 26.2</span>
+            <h3>Classes moved or renamed</h3>
+            <p>284 classes went missing; 188 were traced to a new home.</p>
+            <p class="big-num" data-count="188">188<small>class rules</small></p>
+            <div class="meter" role="img" aria-label="188 of 284 missing classes redirected"><span style="--w: 66%"></span></div>
+          </article>
+          <article class="result hi">
+            <span class="card-tag">26.2 → 26.3</span>
+            <h3>The biggest step so far</h3>
+            <p>501 classes went missing, most of the renderer moved to a new package; 215 were traced.</p>
+            <p class="big-num" data-count="215">215<small>class rules</small></p>
+            <div class="meter" role="img" aria-label="215 of 501 missing classes redirected"><span style="--w: 43%"></span></div>
+          </article>
+          <article class="result">
+            <span class="card-tag">METHODS + FIELDS</span>
+            <h3>Renames and re-signs</h3>
+            <p>Across both forward steps, matched by comparing the code inside each method.</p>
+            <p class="big-num" data-count="319">319<small>member rules</small></p>
+            <div class="meter" role="img" aria-label="319 member rules"><span style="--w: 55%"></span></div>
+          </article>
+        </div>
+        <p class="caption" data-reveal>Bars show the share of missing classes that were traced. The rest are real redesigns with no direct replacement.</p>
+      </section>
+
+      <section class="section wrap" id="rewrite" style="padding-top: 0">
+        <div class="work">
+          <div class="work-sticky">
+            <p class="eyebrow" data-reveal>The rewrite</p>
+            <h2 class="split">Only confident matches <span class="dim">become rules.</span></h2>
+            <p data-reveal>A wrong rule would quietly call the wrong method, which is worse than a clear "missing" in the report. So the matcher stays strict, and anything it cannot prove is reported instead.</p>
+          </div>
+          <div class="work-list" data-stagger>
+            <article class="work-item"><span class="idx">A</span><div><h3>Classes</h3><p>A moved class keeps its methods, so it is matched by its member list. 26.3 moved most of <code>com.mojang.blaze3d</code> to <code>com.mojang.renderpearl</code>.</p></div><span class="tag">MOVED</span></article>
+            <article class="work-item"><span class="idx">B</span><div><h3>Methods</h3><p>A renamed method keeps its body, so the code inside is compared. <code>PoseStack.mulPose</code> became <code>rotate</code>.</p></div><span class="tag">RENAMED</span></article>
+            <article class="work-item"><span class="idx">C</span><div><h3>Fields</h3><p>Matched by how they are set up (registry names survive a rename) or by which methods use them.</p></div><span class="tag">RENAMED</span></article>
+            <article class="work-item"><span class="idx">D</span><div><h3>Signatures</h3><p>When a parameter became a parent type or a method started returning a value, the call is re-pointed and adjusted so the mod never notices.</p></div><span class="tag">RE-SIGNED</span></article>
+            <article class="work-item"><span class="idx">E</span><div><h3>Mixins and access wideners</h3><p>Mixins name their targets as text, like <code>"Lnet/minecraft/...;getX()D"</code>. Those strings are rewritten too, along with access-widener lines.</p></div><span class="tag">STRINGS</span></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section wrap" style="padding-top: 0">
+        <div class="two-col">
+          <div>
+            <p class="eyebrow" data-reveal>Hand-written rules</p>
+            <h2 class="split">When a machine can't prove it, <span class="dim">a person checks it.</span></h2>
+          </div>
+          <div data-reveal>
+            <p>A few changes can't be matched automatically. Those get hand-written rules, each verified against both game jars and explained next to the rule. Two kinds exist so far:</p>
+            <pre class="codeblock"><b>PushReaction.DESTROY</b>  →  POPPED       201 of 201 blocks agree
+<b>PushReaction.BLOCK</b>    →  IMMOVEABLE   11 of 11 blocks agree
+<b>simpleCodec(...)</b>      →  null         codecs were removed in 26.3</pre>
+            <p style="margin-top: 18px">The first kind is a rename proven by usage: 26.3 renamed <em>and reordered</em> every <code>PushReaction</code> value, so matching by position would have been wrong. The second is a <strong>stub</strong>: 26.3 removed block codecs entirely, but old mods still build one when they load, so they get <code>null</code> instead of crashing. Stubs are only used when the game no longer reads the value at all.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section wrap" id="check" style="padding-top: 0">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-reveal>The check</p>
+            <h2 class="split">Resolve everything. <span class="dim">Before Java has to.</span></h2>
+          </div>
+          <p data-reveal>Java links lazily: a missing method only throws when that line runs, maybe an hour into play. Isotope does the same lookups up front, for every instruction, and writes the result to <code>isotope/report.txt</code>.</p>
+        </div>
+        <pre class="codeblock" data-reveal>== carved_wood  [Carved Wood-fabric-26.1-1.9.7-B.jar]
+   built for Minecraft 26.1.2, running on 26.3
+   33 references redirected, 7 of 100 classes rewritten
+
+   <b>fails at startup - reached from the mod's initializer (1):</b>
+     - net.im_maker.carved_wood.platform.FabricPlatHelper.addFuelItemImpl needs:
+         net.fabricmc.fabric.api.registry.FuelValueEvents
+
+   removed game APIs - uses now get null / 0 instead (1):
+     - BlockBehaviour.simpleCodec(...) - per-block codecs were removed in 26.3</pre>
+      </section>
+
+      <section class="section wrap" id="protect" style="padding-top: 0">
+        <div class="work">
+          <div class="work-sticky">
+            <p class="eyebrow" data-reveal>The safety check</p>
+            <h2 class="split">Some crashes are certain. <span class="dim">Those mods stay out.</span></h2>
+            <p data-reveal>A mod that would crash on every launch is held back by default, along with anything that needs it. Set <code>load-mods-with-fatal-problems=true</code> to try anyway.</p>
+          </div>
+          <div class="work-list" data-stagger>
+            <article class="work-item"><span class="idx">A</span><div><h3>Class changed shape</h3><p>The mod extends a game class that has since become final, sealed or an interface. Java refuses to load that class at all. 26.3 sealed <code>Holder</code> and turned <code>Feature</code> into an interface.</p></div><span class="tag">FATAL</span></article>
+            <article class="work-item"><span class="idx">B</span><div><h3>Fails at startup</h3><p>Isotope follows the mod's own code from its initializer. If something on that path no longer exists, the crash happens on every launch, so it is not a "maybe".</p></div><span class="tag">FATAL</span></article>
+            <article class="work-item"><span class="idx">C</span><div><h3>Everything else is reported</h3><p>A missing method in a rarely used corner may never run. Those mods load, and the report lists where they could fail.</p></div><span class="tag">REPORTED</span></article>
+            <article class="work-item"><span class="idx">D</span><div><h3>Mixins that miss are skipped</h3><p>By default, a hook that no longer fits is skipped with a log line instead of crashing. The feature behind it won't work.</p></div><span class="tag">LENIENT</span></article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer wrap">
+      <div>
+        <a class="brand" href="index.html"><img src="assets/isotope-icon.png" alt="" width="24" height="24"><span>Isotope</span></a>
+        <p>Same mod. Different number.</p>
+      </div>
+      <p>&copy; Pavan Nemani · All Rights Reserved (ARR)</p>
+      <div class="footer-links"><a href="transparency.html">Transparency</a><a href="https://github.com/ophidianp/isotope">GitHub</a><a href="https://github.com/ophidianp/isotope/releases">Releases</a></div>
+    </footer>
+  </body>
+</html>
