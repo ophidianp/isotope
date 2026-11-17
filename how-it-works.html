@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="assets/site.css?v=1">
     <script src="assets/liquid-glass.js?v=1" defer></script>
     <script src="assets/site.js?v=1" defer></script>
-    <script src="assets/isotope.js?v=1" defer></script>
+    <script src="assets/isotope.js?v=2" defer></script>
   </head>
   <body>
     <div class="backdrop" aria-hidden="true"><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div></div>
@@ -108,6 +108,22 @@
 <b>PushReaction.BLOCK</b>    →  IMMOVEABLE   11 of 11 blocks agree
 <b>simpleCodec(...)</b>      →  null         codecs were removed in 26.3</pre>
             <p style="margin-top: 18px">The first kind is a rename proven by usage: 26.3 renamed <em>and reordered</em> every <code>PushReaction</code> value, so matching by position would have been wrong. The second is a <strong>stub</strong>: 26.3 removed block codecs entirely, but old mods still build one when they load, so they get <code>null</code> instead of crashing. Stubs are only used when the game no longer reads the value at all.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section wrap" id="deeper" style="padding-top: 0">
+        <div class="work">
+          <div class="work-sticky">
+            <p class="eyebrow" data-reveal>Beyond renames</p>
+            <h2 class="split">When the game changed shape, <span class="dim">not just names.</span></h2>
+            <p data-reveal>Testing real mods showed where renames are not enough. Each of these fixes came from a real failure, and each is checked against Mojang's own game before it ships.</p>
+          </div>
+          <div class="work-list" data-stagger>
+            <article class="work-item"><span class="idx">A</span><div><h3>Data files are converted</h3><p>26.3 changed the format of loot tables, advancements and world-gen data. Isotope converts a mod's files; run over Mojang's own 26.2 files, the result matches Mojang's 26.3 files for 99.7% of loot tables and 99.3% of advancements.</p></div><span class="tag">DATA</span></article>
+            <article class="work-item"><span class="idx">B</span><div><h3>One bad method no longer sinks a class</h3><p>Java rejects a whole class if one method needs something that is gone. Isotope runs Java's own check first and replaces only that method, so the rest of the class still works.</p></div><span class="tag">RESCUE</span></article>
+            <article class="work-item"><span class="idx">C</span><div><h3>Classes that became interfaces</h3><p>Mojang turned structure processors, placements and placement modifiers into interfaces that hand out their codec directly. Isotope reshapes the mod's classes to match and bridges the old "type" objects.</p></div><span class="tag">BRIDGE</span></article>
+            <article class="work-item"><span class="idx">D</span><div><h3>Colored blocks became collections</h3><p>26.2 replaced 460 fields like <code>WHITE_WOOL</code> with collections like <code>WOOL.white()</code>. Isotope rewrites every use, after confirming each entry is the very same block.</p></div><span class="tag">COLORS</span></article>
           </div>
         </div>
       </section>

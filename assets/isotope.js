@@ -456,27 +456,28 @@ const MODS = [
   { name: "Fishing Real", redirected: 3, unresolved: 1, verdict: "loaded" },
   { name: "Nyf's Spiders", redirected: 7, unresolved: 12, verdict: "loaded" },
   { name: "Patchouli", redirected: 79, unresolved: 26, verdict: "loaded" },
+  { name: "Thermoo", redirected: 182, unresolved: 23, verdict: "loaded" },
+  { name: "Fabric Waystones", redirected: 29, unresolved: 29, verdict: "loaded" },
+  { name: "YUNG's API", redirected: 80, unresolved: 36, verdict: "progress" },
+  { name: "Better Dungeons", redirected: 74, unresolved: 14, verdict: "progress" },
+  { name: "Paxi", redirected: 0, unresolved: 0, verdict: "progress" },
   { name: "Carved Wood", redirected: 33, unresolved: 10, verdict: "startup" },
-  { name: "Thermoo", redirected: 174, unresolved: 30, verdict: "startup" },
   { name: "Artifacts", redirected: 25, unresolved: 46, verdict: "shape" },
-  { name: "YUNG's API", redirected: 19, unresolved: 47, verdict: "shape" },
-  { name: "Better Dungeons", redirected: 1, unresolved: 38, verdict: "shape" },
   { name: "Frostiful", redirected: 256, unresolved: 95, verdict: "shape" },
-  { name: "Paxi", redirected: 0, unresolved: 0, verdict: "dependency" },
-  { name: "Fabric Waystones", redirected: 29, unresolved: 5, verdict: "untested" },
 ];
 const VERDICTS = {
   loaded: ["LOADED", "good"],
   startup: ["WOULD CRASH AT STARTUP", "warn"],
   shape: ["CLASS CHANGED SHAPE", "bad"],
   dependency: ["NEEDS A HELD-BACK MOD", "faint"],
+  progress: ["BEING FIXED", "faint"],
   untested: ["NOT TESTED", "faint"],
 };
 
 function demoPreflight(host) {
   const demo = buildDemo(host, {
     title: "The pre-flight check",
-    sub: "Twelve real mods whose newest build is for 26.1.x, on a 26.3 server. Switch the safety check off to see what happens without it.",
+    sub: "Real mods whose newest build is for 26.1.x, on a 26.3 server. Switch the safety check off to see what happens without it.",
     tall: true,
     controls: switchHtml("Safety check", true) + buttonHtml("Run again", "again"),
     stats: [["loaded", "Loaded"], ["held", "Held back"], ["server", "Server"]],
@@ -503,7 +504,7 @@ function demoPreflight(host) {
       if (!safe && (mod.verdict === "startup" || mod.verdict === "shape")) { label = "LOADED → CRASHES"; tone = "bad"; }
       if (done) {
         if (label.startsWith("LOADED")) loaded++;
-        else if (mod.verdict !== "untested") held++;
+        else if (mod.verdict !== "untested" && mod.verdict !== "progress") held++;
         if (!safe && (mod.verdict === "startup" || mod.verdict === "shape")) crash = true;
       }
       roundRect(ctx, 8, y + 2, w - 16, rowH - 4, 8);

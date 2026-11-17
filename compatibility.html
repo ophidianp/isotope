@@ -40,16 +40,16 @@
 
       <section class="page-hero wrap">
         <p class="eyebrow" data-reveal><span class="status-dot"></span> Compatibility</p>
-        <h1 class="split">Twelve real mods. <span class="grad">Real results.</span></h1>
-        <p class="lede" data-reveal style="--d: 300ms">We took twelve Fabric mods from Modrinth whose newest build is for 26.1.x and put them through Isotope on a Minecraft 26.3 dedicated server. Here is exactly what happened.</p>
+        <h1 class="split">Real mods. <span class="grad">Real results.</span></h1>
+        <p class="lede" data-reveal style="--d: 300ms">We took twelve Fabric mods from Modrinth whose newest build is for 26.1.x, plus a library built for 26.2, and put them through Isotope on a Minecraft 26.3 dedicated server. Here is exactly what happened, and what each fix changed.</p>
       </section>
 
       <section class="wrap">
         <dl class="specs" data-stagger aria-label="Test setup">
           <div><dt>Game</dt><dd>Minecraft 26.3 server</dd></div>
           <div><dt>Loader</dt><dd>Fabric 0.19.5</dd></div>
-          <div><dt>Installed normally</dt><dd>Fabric API, Cloth Config, CCA, Forge Config API Port</dd></div>
-          <div><dt>Isotope</dt><dd>0.1.0</dd></div>
+          <div><dt>Installed normally</dt><dd>Fabric API, Cloth Config, CCA, Forge Config API Port, YACL</dd></div>
+          <div><dt>Isotope</dt><dd>0.1.0 (in development)</dd></div>
         </dl>
       </section>
 
@@ -57,7 +57,7 @@
         <div class="section-head">
           <div>
             <p class="eyebrow" data-reveal>Results</p>
-            <h2 class="split" id="results-heading">Four loaded. <span class="dim">Seven held back for a reason.</span></h2>
+            <h2 class="split" id="results-heading">Seven loaded. <span class="dim">Three on the way. Three held back.</span></h2>
           </div>
           <p data-reveal>"Left over" counts references that still did not resolve after the rewrite. A mod can load with some left over if they sit in code that rarely runs.</p>
         </div>
@@ -69,18 +69,19 @@
               <tr><td>Fishing Real</td><td class="num">26.1.2</td><td class="num">3</td><td class="num">1</td><td><span class="verdict good">Loaded</span></td></tr>
               <tr><td>Nyf's Spiders</td><td class="num">26.1</td><td class="num">7</td><td class="num">12</td><td><span class="verdict good">Loaded</span></td></tr>
               <tr><td>Patchouli</td><td class="num">26.1</td><td class="num">79</td><td class="num">26</td><td><span class="verdict good">Loaded</span></td></tr>
-              <tr><td>Carved Wood</td><td class="num">26.1</td><td class="num">33</td><td class="num">10</td><td><span class="verdict warn">Held back: startup crash</span></td></tr>
-              <tr><td>Thermoo</td><td class="num">26.1</td><td class="num">174</td><td class="num">30</td><td><span class="verdict warn">Held back: startup crash</span></td></tr>
+              <tr><td>Thermoo</td><td class="num">26.1</td><td class="num">182</td><td class="num">23</td><td><span class="verdict good">Loaded (fixed: moved registry codecs)</span></td></tr>
+              <tr><td>Fabric Waystones</td><td class="num">26.1</td><td class="num">29</td><td class="num">29</td><td><span class="verdict good">Loaded (fixed: data files, with owo-lib)</span></td></tr>
+              <tr><td>owo-lib (library)</td><td class="num">26.2</td><td class="num">688</td><td class="num">185</td><td><span class="verdict good">Loaded (fixed: rescued classes, soft mixins)</span></td></tr>
+              <tr><td>YUNG's API</td><td class="num">26.1.2</td><td class="num">80</td><td class="num">36</td><td><span class="verdict warn">Being fixed: now reaches world generation</span></td></tr>
+              <tr><td>YUNG's Better Dungeons</td><td class="num">26.1.2</td><td class="num">74</td><td class="num">14</td><td><span class="verdict warn">Being fixed: needs YUNG's API</span></td></tr>
+              <tr><td>Paxi</td><td class="num">26.1.2</td><td class="num">0</td><td class="num">0</td><td><span class="verdict warn">Being fixed: needs YUNG's API</span></td></tr>
+              <tr><td>Carved Wood</td><td class="num">26.1</td><td class="num">33</td><td class="num">10</td><td><span class="verdict bad">Held back: startup crash (fuel API removed)</span></td></tr>
               <tr><td>Artifacts</td><td class="num">26.1</td><td class="num">25</td><td class="num">46</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
-              <tr><td>YUNG's API</td><td class="num">26.1.2</td><td class="num">19</td><td class="num">47</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
-              <tr><td>YUNG's Better Dungeons</td><td class="num">26.1.2</td><td class="num">1</td><td class="num">38</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
               <tr><td>Frostiful</td><td class="num">26.1</td><td class="num">256</td><td class="num">95</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
-              <tr><td>Paxi</td><td class="num">26.1.2</td><td class="num">0</td><td class="num">0</td><td><span class="verdict faint">Held back: needs YUNG's API</span></td></tr>
-              <tr><td>Fabric Waystones</td><td class="num">26.1</td><td class="num">29</td><td class="num">5</td><td><span class="verdict faint">Not tested: needs owo-lib</span></td></tr>
             </tbody>
           </table>
         </div>
-        <p class="caption" data-reveal>With the safety check switched off, Carved Wood, Thermoo, Artifacts and YUNG's API all really did crash the server at startup. Frostiful was not crash-tested because it also needs YACL, which was not installed. "Loaded" means the server started; client-side features are untested.</p>
+        <p class="caption" data-reveal>"Loaded" means the 26.3 server started with the mod; client-side features are untested. Thermoo and Fabric Waystones were held back in the first round and load since the latest fixes. YUNG's mods now get past mod loading and data loading into world generation; the last fix there is still being tested. With the safety check off, Carved Wood and Artifacts really do crash the server at startup. The first four were tested before the newest changes and will be re-checked in the next full run.</p>
       </section>
 
       <section class="section wrap" style="padding-top: 0">

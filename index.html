@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="assets/site.css?v=1">
     <script src="assets/liquid-glass.js?v=1" defer></script>
     <script src="assets/site.js?v=1" defer></script>
-    <script src="assets/isotope.js?v=1" defer></script>
+    <script src="assets/isotope.js?v=2" defer></script>
   </head>
   <body>
     <div class="backdrop" aria-hidden="true"><div class="aurora aurora-a"></div><div class="aurora aurora-b"></div></div>
@@ -176,7 +176,7 @@
             <h2 class="split">A few quick <span class="dim">answers.</span></h2>
           </div>
           <div class="faq-list" data-reveal>
-            <details><summary>Will every mod work?<span class="plus" aria-hidden="true"></span></summary><p>No. Many changes between releases are redesigns, not renames. 26.3 rewrote world generation and loot, for example, and no rename can bridge that. Isotope reports those and holds back mods that are certain to crash. In our test, 4 of 11 testable mods loaded.</p></details>
+            <details><summary>Will every mod work?<span class="plus" aria-hidden="true"></span></summary><p>No. Many changes between releases are redesigns, not renames. 26.3 rewrote world generation and loot, for example, and no rename can bridge that. Isotope reports those and holds back mods that are certain to crash. In our test of real 26.1.x mods, 7 now load (counting the owo-lib library), 3 are being fixed, and 3 are held back.</p></details>
             <details><summary>Does it work on 1.21 or older?<span class="plus" aria-hidden="true"></span></summary><p>No. Before 26.1, Minecraft was obfuscated and mods used a different toolchain, so it is out of scope. For older versions, look at Retromod.</p></details>
             <details><summary>Is it safe for my world?<span class="plus" aria-hidden="true"></span></summary><p>Isotope never edits your original jars, and it keeps out mods it knows will crash. A loaded mod can still misbehave where the game changed underneath it, so back up worlds you care about before trying a rewritten mod.</p></details>
             <details><summary>Has it been tested on a client?<span class="plus" aria-hidden="true"></span></summary><p>Not yet. It has been tested on a 26.3 dedicated server. Client-only parts of rewritten mods (rendering, screens) are rewritten and checked the same way, but have not been run in a real client.</p></details>
