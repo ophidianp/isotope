@@ -202,6 +202,68 @@ public final class RedirectTable {
 		return oldName;
 	}
 
+	/**
+	 * Adds the exact inverses of {@code forward}'s hand-written renames and moves to this table
+	 * (which must be the opposite step). Class, field and method renames, signature changes and
+	 * static-method moves all invert exactly; color collections are reversed by
+	 * {@link #colorReverse}. Interface bridges, adapters and stubs have no exact inverse and are
+	 * left out. Rules already in this table (generated or written for this direction) win.
+	 */
+	public void addInversesOf(RedirectTable forward) {
+		for (Map.Entry<String, String> c : forward.classes.entrySet()) {
+			if (c.getValue().startsWith("com/isotope/")) continue; // stand-ins for removed types have no way back
+			classes.putIfAbsent(c.getValue(), c.getKey());
+		}
+
+		for (Member m : forward.methods.values()) {
+			if (m.isIdentity()) continue;
+			String at = forward.newOwner(m);
+			String newOwner = at != null ? at : forward.mapClass(m.owner());
+			String newDesc = m.newDesc() != null ? m.newDesc() : forward.mapDesc(m.desc());
+			if (method(newOwner, m.newName(), newDesc) != null) continue;
+			// Going back, the old method returns the type the forward rule cast to, which is
+			// narrower: no cast. A forward change that returned something narrower needs one back.
+			boolean cast = !m.cast() && !org.objectweb.asm.Type.getReturnType(newDesc).equals(org.objectweb.asm.Type.getReturnType(forward.mapDesc(m.desc())));
+			boolean descChanged = !newDesc.equals(forward.mapDesc(m.desc()));
+			addMethod(new Member(newOwner, m.newName(), newDesc, m.name(), descChanged || at != null ? m.desc() : null, cast, m.priv()));
+			if (at != null) movedTo.put(newOwner + ' ' + m.newName() + ' ' + newDesc, m.owner());
+		}
+
+		for (Member f : forward.fields.values()) {
+			if (f.isIdentity()) continue;
+			String owner = forward.mapClass(f.owner());
+			String desc = forward.mapDesc(f.desc());
+			if (field(owner, f.newName(), desc) == null) addField(new Member(owner, f.newName(), desc, f.name(), null, false, f.priv()));
+		}
+
+		for (ColorRule r : forward.colorRules.values()) colorReverse.put(r.owner() + ' ' + r.collection(), r);
+	}
+
+	/** Reverse color rules: "owner collectionField" -> the forward rule (turns WOOL.white() back into WHITE_WOOL). */
+	public final Map<String, ColorRule> colorReverse = new LinkedHashMap<>();
+
+	/** Maps every {@code Lsome/Class;} in a descriptor through this table's class renames. */
+	public String mapDesc(String desc) {
+		if (desc.indexOf('L') < 0) return desc;
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+
+		while (i < desc.length()) {
+			char ch = desc.charAt(i);
+
+			if (ch == 'L') {
+				int semi = desc.indexOf(';', i);
+				sb.append('L').append(mapClass(desc.substring(i + 1, semi))).append(';');
+				i = semi + 1;
+			} else {
+				sb.append(ch);
+				i++;
+			}
+		}
+
+		return sb.toString();
+	}
+
 	public static RedirectTable read(Reader in) throws IOException {
 		RedirectTable t = new RedirectTable();
 		t.readInto(in);

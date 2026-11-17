@@ -27,6 +27,20 @@ public final class ClassRewriter {
 		node.accept(new HopRemapper(writer, hop, changes, stubsUsed));
 		byte[] out = changes[0] == before ? classBytes : writer.toByteArray();
 
+		// Going back past the color collections: WOOL.white() -> WHITE_WOOL.
+		if (!hop.table.colorReverse.isEmpty()) {
+			ClassNode cn = new ClassNode();
+			new ClassReader(out).accept(cn, 0);
+			int n = InterfaceBridge.reverseColors(cn, hop.table.colorReverse);
+
+			if (n > 0) {
+				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				cn.accept(w);
+				out = w.toByteArray();
+				changes[0] += n;
+			}
+		}
+
 		// Game classes that became interfaces (hand-written "x" rules): adapt direct subclasses.
 		for (com.isotope.model.RedirectTable.InterfaceRule rule : hop.table.interfaceRules) {
 			String iface = hop.table.mapClass(rule.cls());

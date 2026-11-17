@@ -3,6 +3,7 @@ package com.isotope.rewrite;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -211,6 +212,50 @@ public final class InterfaceBridge {
 		}
 
 		collectLive(c.superName, hop, out, depth + 1);
+	}
+
+	/**
+	 * Going back to a version before color collections: {@code getstatic Blocks.WOOL;
+	 * invokevirtual ColorCollection.white()} (and the cast that usually follows) becomes
+	 * {@code getstatic Blocks.WHITE_WOOL}. Other uses of a collection (iterating it, storing it)
+	 * have no old equivalent and are left for the link check to report.
+	 */
+	public static int reverseColors(ClassNode cn, Map<String, RedirectTable.ColorRule> reverse) {
+		int changed = 0;
+
+		for (MethodNode mn : cn.methods) {
+			for (AbstractInsnNode insn = mn.instructions.getFirst(); insn != null; insn = insn.getNext()) {
+				if (!(insn instanceof org.objectweb.asm.tree.FieldInsnNode get) || get.getOpcode() != Opcodes.GETSTATIC
+						|| !get.desc.equals("Lnet/minecraft/world/level/block/ColorCollection;")) continue;
+				RedirectTable.ColorRule rule = reverse.get(get.owner + ' ' + get.name);
+				AbstractInsnNode next = nextReal(get);
+				if (rule == null || !(next instanceof MethodInsnNode call) || !call.owner.equals("net/minecraft/world/level/block/ColorCollection")
+						|| !call.desc.equals("()Ljava/lang/Object;")) continue;
+				String color = colorConstant(call.name);
+				if (color == null) continue;
+				AbstractInsnNode after = nextReal(call);
+				mn.instructions.set(get, new org.objectweb.asm.tree.FieldInsnNode(Opcodes.GETSTATIC, rule.owner(), color + "_" + rule.suffix(), "L" + rule.elementType() + ";"));
+				mn.instructions.remove(call);
+				if (after instanceof TypeInsnNode cast && cast.getOpcode() == Opcodes.CHECKCAST && cast.desc.equals(rule.elementType())) mn.instructions.remove(cast);
+				changed++;
+				insn = mn.instructions.getFirst(); // the list changed under us; rescanning is cheap
+			}
+		}
+
+		return changed;
+	}
+
+	private static AbstractInsnNode nextReal(AbstractInsnNode n) {
+		AbstractInsnNode x = n.getNext();
+		while (x != null && x.getOpcode() < 0) x = x.getNext();
+		return x;
+	}
+
+	/** "lightBlue" -> "LIGHT_BLUE"; null for anything that is not one of the 16 color accessors. */
+	static String colorConstant(String accessor) {
+		String c = accessor.replaceAll("([A-Z])", "_$1").toUpperCase(java.util.Locale.ROOT);
+		for (String known : RedirectTable.COLORS) if (known.equals(c)) return c;
+		return null;
 	}
 
 	static List<String> list(String... s) {

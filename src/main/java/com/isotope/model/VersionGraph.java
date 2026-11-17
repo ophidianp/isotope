@@ -107,6 +107,19 @@ public final class VersionGraph {
 				}
 			}
 
+			// The opposite step's hand-written renames and moves, inverted, so every fix works both ways.
+			InputStream opposite = VersionGraph.class.getResourceAsStream("/isotope/redirects/" + to + "_to_" + from + ".manual");
+
+			if (opposite != null) {
+				RedirectTable forward = new RedirectTable();
+
+				try (BufferedReader r = new BufferedReader(new InputStreamReader(opposite, StandardCharsets.UTF_8))) {
+					forward.readInto(r);
+				}
+
+				t.addInversesOf(forward);
+			}
+
 			tables.put(key, t);
 		}
 
