@@ -1,0 +1,46 @@
+name: Release
+
+# Run by hand (Actions tab -> Release -> Run workflow). Builds the mod from the chosen
+# branch and publishes a GitHub release with the mod jar attached (not -sources.jar).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, must match mod_version in gradle.properties (e.g. 1.0.1)"
+        required: true
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: Check version
+        run: grep -qx "mod_version=${{ inputs.version }}" gradle.properties
+      - name: Build and test
+        run: ./gradlew clean build --no-daemon
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ inputs.version }}" "build/libs/isotope-${{ inputs.version }}.jar" \
+            --target "${{ github.sha }}" --title "Isotope ${{ inputs.version }}" \
+            ${{ inputs.prerelease && '--prerelease' || '' }} --notes-file - <<'NOTES'
+          Put this jar in your normal `mods` folder, and mods built for another Minecraft 26.x version in `<game>/isotope/mods`.
+
+          **Changes in 1.0.1**
+          - The Lost Castle loads on 26.3: a lambda for a game interface that no longer declares its method is no longer reported as a crash.
+          - Lenient mixin mode: an `@Inject` hook whose target method changed its parameters is now switched off cleanly and reported. Before, the leftover handler could break the whole game class it targeted (seen with Moonlight on 26.3).
+
+          Tested on 26.3 and 26.2 dedicated servers with 33 real mods (results: https://ophidianp.github.io/isotope/compatibility.html). Not tested on a client yet.
+          NOTES
