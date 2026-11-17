@@ -108,6 +108,92 @@ class SafetyTest {
 		}));
 	}
 
+	/** A mod class whose static initializer makes a lambda {@code () -> null} for {@code iface.codec()}. */
+	private static byte[] lambdaUser(String iface) {
+		return cls("mod/Types", "java/lang/Object", null, Opcodes.ACC_PUBLIC, cw -> {
+			method(cw, Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC, "lambda$0", "()Ljava/lang/Object;", mv -> {
+				mv.visitInsn(Opcodes.ACONST_NULL);
+				mv.visitInsn(Opcodes.ARETURN);
+			});
+			method(cw, Opcodes.ACC_STATIC, "<clinit>", "()V", mv -> {
+				org.objectweb.asm.Handle lmf = new org.objectweb.asm.Handle(Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory",
+						"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;", false);
+				org.objectweb.asm.Type sam = org.objectweb.asm.Type.getMethodType("()Ljava/lang/Object;");
+				mv.visitInvokeDynamicInsn("codec", "()L" + iface + ";", lmf, sam,
+						new org.objectweb.asm.Handle(Opcodes.H_INVOKESTATIC, "mod/Types", "lambda$0", "()Ljava/lang/Object;", false), sam);
+				mv.visitInsn(Opcodes.POP);
+				mv.visitInsn(Opcodes.RETURN);
+			});
+		});
+	}
+
+	@Test
+	void aLambdaForAnInterfaceWithNoAbstractMethodsLeftIsNotAProblem() {
+		// 26.3's StructureProcessorType kept its name but lost codec(): old lambdas still load.
+		Map<String, byte[]> live = new HashMap<>();
+		live.put("net/minecraft/ProcType", cls("net/minecraft/ProcType", "java/lang/Object", null,
+				Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT, cw -> { }));
+		Report report = new Report("t.jar");
+		new Linker(index(live), report).check(lambdaUser("net/minecraft/ProcType"));
+		assertFalse(report.render().contains("implemented by a lambda"), report.render());
+
+		// But if the interface now has a different abstract method, the lambda cannot implement it.
+		live.put("net/minecraft/ProcType", cls("net/minecraft/ProcType", "java/lang/Object", null,
+				Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT, cw ->
+						cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_ABSTRACT, "other", "()V", null, null).visitEnd()));
+		Report report2 = new Report("t.jar");
+		new Linker(index(live), report2).check(lambdaUser("net/minecraft/ProcType"));
+		assertTrue(report2.render().contains("implemented by a lambda"), report2.render());
+	}
+
+	@Test
+	void anInjectWhoseTargetChangedParametersIsReportedAndDisarmed() {
+		// Real case: Moonlight's @Inject into ChunkGenerator.getMobsAt(Holder, ...); 26.3 made it getMobsAt(Level, ...).
+		Map<String, byte[]> live = new HashMap<>();
+		live.put("net/minecraft/Gen", cls("net/minecraft/Gen", "java/lang/Object", null, Opcodes.ACC_PUBLIC, cw ->
+				method(cw, Opcodes.ACC_PUBLIC, "getMobsAt", "(Lnet/minecraft/Level;I)V", mv -> mv.visitInsn(Opcodes.RETURN))));
+		live.put("net/minecraft/Holder", cls("net/minecraft/Holder", "java/lang/Object", null, Opcodes.ACC_PUBLIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT, cw -> { }));
+		live.put("net/minecraft/Level", cls("net/minecraft/Level", "java/lang/Object", null, Opcodes.ACC_PUBLIC, cw -> { }));
+		String ci = "Lorg/spongepowered/asm/mixin/injection/callback/CallbackInfo;";
+		java.util.function.BiFunction<String, String, byte[]> mixin = (name, desc) -> cls(name, "java/lang/Object", null, Opcodes.ACC_PUBLIC, cw -> {
+			var m = cw.visitAnnotation("Lorg/spongepowered/asm/mixin/Mixin;", false);
+			var arr = m.visitArray("value");
+			arr.visit(null, org.objectweb.asm.Type.getObjectType("net/minecraft/Gen"));
+			arr.visitEnd();
+			m.visitEnd();
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PRIVATE, "hook", desc, null, null);
+			var an = mv.visitAnnotation("Lorg/spongepowered/asm/mixin/injection/Inject;", true);
+			var ma = an.visitArray("method");
+			ma.visit(null, "getMobsAt");
+			ma.visitEnd();
+			an.visitEnd();
+			mv.visitCode();
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(0, 4);
+			mv.visitEnd();
+		});
+
+		byte[] stale = mixin.apply("mod/StaleMixin", "(Lnet/minecraft/Holder;I" + ci + "Ljava/lang/Object;)V");
+		Report report = new Report("t.jar");
+		com.isotope.link.MixinCheck.check(stale, index(live), report);
+		assertTrue(report.render().contains("the hook cannot apply"), report.render());
+		ClassNode cn = new ClassNode();
+		new ClassReader(stale).accept(cn, 0);
+		assertTrue(com.isotope.link.MixinCheck.disarmMismatched(cn, List.of("net/minecraft/Gen"), index(live)));
+		assertTrue(cn.methods.stream().filter(x -> x.name.equals("hook")).allMatch(x -> x.visibleAnnotations == null || x.visibleAnnotations.isEmpty()));
+
+		// Handlers that fit (target parameters, or only the callback info) are left alone.
+		for (String desc : List.of("(Lnet/minecraft/Level;I" + ci + ")V", "(" + ci + ")V")) {
+			byte[] fine = mixin.apply("mod/FineMixin", desc);
+			Report r = new Report("t.jar");
+			com.isotope.link.MixinCheck.check(fine, index(live), r);
+			assertFalse(r.render().contains("the hook cannot apply"), r.render());
+			ClassNode fn = new ClassNode();
+			new ClassReader(fine).accept(fn, 0);
+			assertFalse(com.isotope.link.MixinCheck.disarmMismatched(fn, List.of("net/minecraft/Gen"), index(live)));
+		}
+	}
+
 	@Test
 	void implementingANowSealedInterfaceIsFatal() {
 		ClassWriter sealed = new ClassWriter(0);

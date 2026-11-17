@@ -257,7 +257,7 @@ public final class JarRewriter {
 						boolean allGame = mc.mixinTargets.stream().allMatch(t -> Linker.isGameName(t)
 								&& !(o.dedicatedServer && Linker.isClientOnly(t)));
 						if (present.isEmpty() && allGame) deadMixins.add(mc.name);
-						if (o.lenientMixins) e.setValue(relaxRequire(e.getValue()));
+						if (o.lenientMixins) e.setValue(relaxRequire(e.getValue(), mc.mixinTargets, index));
 					}
 				} catch (RuntimeException ex) {
 					report.notes.add("could not check " + e.getKey() + " (" + ex + ")");
@@ -530,10 +530,11 @@ public final class JarRewriter {
 
 	// ---------------------------------------------------------------- patching
 
-	private static byte[] relaxRequire(byte[] classBytes) {
+	private static byte[] relaxRequire(byte[] classBytes, List<String> mixinTargets, LiveIndex index) {
 		ClassNode cn = new ClassNode();
 		new ClassReader(classBytes).accept(cn, 0);
-		if (!MixinCheck.relaxRequire(cn)) return classBytes;
+		boolean disarmed = MixinCheck.disarmMismatched(cn, mixinTargets, index);
+		if (!MixinCheck.relaxRequire(cn) && !disarmed) return classBytes;
 		ClassWriter w = new ClassWriter(0);
 		cn.accept(w);
 		return w.toByteArray();

@@ -27,6 +27,8 @@ public final class MixinCheck {
 	private static final String SHADOW = "Lorg/spongepowered/asm/mixin/Shadow;";
 	private static final String LOCAL_CAPTURE = "Lorg/spongepowered/asm/mixin/injection/callback/LocalCapture;";
 	private static final String OVERWRITE = "Lorg/spongepowered/asm/mixin/Overwrite;";
+	private static final String INJECT = "Lorg/spongepowered/asm/mixin/injection/Inject;";
+	private static final String CALLBACK = "org/spongepowered/asm/mixin/injection/callback/CallbackInfo";
 
 	private MixinCheck() { }
 
@@ -71,6 +73,12 @@ public final class MixinCheck {
 					}
 				} else if (an.desc.startsWith("Lorg/spongepowered/asm/mixin/") || an.desc.contains("/mixinextras/")) {
 					injectorMethods(an, targets, mc.name, report);
+					String expected = an.desc.equals(INJECT) ? injectMismatch(mn, an, targets) : null;
+
+					if (expected != null) {
+						report.problem(Report.Kind.MIXIN_TARGET, "@Inject handler " + mn.name + " takes " + params(mn.desc)
+								+ " but " + names(targets) + " now has " + expected + "  (the hook cannot apply)", mc.name);
+					}
 				}
 			}
 		}
@@ -123,6 +131,95 @@ public final class MixinCheck {
 				}
 			}
 		}
+	}
+
+	/**
+	 * An {@code @Inject} handler either takes only the callback info, or the target method's own
+	 * parameters followed by the callback info (then optional captured locals). When the game changed
+	 * the target's parameters, the handler fits none of the methods it names and the hook can never
+	 * apply. Returns the parameters the target has now, or null when the handler fits (or when this
+	 * cannot be decided: selectors with owners, quantifiers or regexes, targets not found).
+	 */
+	static String injectMismatch(MethodNode mn, AnnotationNode an, List<ClassInfo> targets) {
+		if (an.values == null) return null;
+		org.objectweb.asm.Type[] args = org.objectweb.asm.Type.getArgumentTypes(mn.desc);
+		int ci = -1;
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].getSort() == org.objectweb.asm.Type.OBJECT && args[i].getInternalName().startsWith(CALLBACK)) {
+				ci = i;
+				break;
+			}
+		}
+
+		if (ci <= 0) return null; // takes no target parameters: fits any target method
+		StringBuilder want = new StringBuilder("(");
+		for (int i = 0; i < ci; i++) want.append(args[i].getDescriptor());
+		String prefix = want.append(')').toString();
+		String seen = null;
+
+		for (int i = 0; i + 1 < an.values.size(); i += 2) {
+			if (!"method".equals(an.values.get(i))) continue;
+			Object v = an.values.get(i + 1);
+			List<?> list = v instanceof List<?> l ? l : List.of(v);
+
+			for (Object o : list) {
+				if (!(o instanceof String str)) return null;
+				Selector s = Selector.parse(str);
+				if (s == null || s.owner != null || s.name.isEmpty() || !s.quantifier.isEmpty() || s.fieldDesc || str.contains("*")) return null;
+
+				for (ClassInfo t : targets) {
+					for (String key : t.methods.keySet()) {
+						if (!(s.desc != null ? key.equals(s.name + s.desc) : key.startsWith(s.name + "("))) continue;
+						String desc = key.substring(s.name.length());
+						String own = desc.substring(0, desc.indexOf(')') + 1);
+						if (own.equals(prefix)) return null;
+						seen = own;
+					}
+				}
+			}
+		}
+
+		return seen == null ? null : params(seen + "V");
+	}
+
+	/** Lenient mode: removes the injector annotation from {@code @Inject} handlers that cannot apply. */
+	public static boolean disarmMismatched(ClassNode cn, List<String> mixinTargets, LiveIndex index) {
+		List<ClassInfo> targets = new ArrayList<>();
+
+		for (String t : mixinTargets) {
+			ClassInfo info = index.get(t);
+			if (info != null) targets.add(info);
+		}
+
+		if (targets.isEmpty()) return false;
+		boolean changed = false;
+
+		for (MethodNode mn : cn.methods) {
+			for (List<AnnotationNode> list : java.util.Arrays.asList(mn.visibleAnnotations, mn.invisibleAnnotations)) {
+				if (list == null) continue;
+
+				// Mixin would skip the hook (lenient mode) but MixinExtras has by then rewritten the handler
+				// for its @Local/@Share parameters, leaving a method whose body reads locals that are not
+				// there; the JVM then rejects the whole target class. Without the annotation the handler is
+				// merged as an ordinary, never-called method, so only this one hook is lost.
+				changed |= list.removeIf(an -> an.desc.equals(INJECT) && injectMismatch(mn, an, targets) != null);
+			}
+		}
+
+		return changed;
+	}
+
+	private static String params(String desc) {
+		StringBuilder sb = new StringBuilder("(");
+
+		for (org.objectweb.asm.Type t : org.objectweb.asm.Type.getArgumentTypes(desc)) {
+			if (sb.length() > 1) sb.append(", ");
+			String n = t.getClassName();
+			sb.append(n.substring(n.lastIndexOf('.') + 1));
+		}
+
+		return sb.append(')').toString();
 	}
 
 	private static boolean hasMember(LiveIndex index, List<ClassInfo> targets, String key, boolean method) {

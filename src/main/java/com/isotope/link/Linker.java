@@ -210,7 +210,11 @@ public final class Linker {
 							if (iface.getSort() == Type.OBJECT && checkClass(iface.getInternalName(), self[0])) {
 								int[] r = findMember(iface.getInternalName(), iname, sam.getDescriptor(), true);
 
-								if (r[0] == MISSING) {
+								// LambdaMetafactory builds the lambda whether or not the interface still declares the
+								// method; it only goes wrong when the game calls a different abstract method on it. An
+								// interface with no abstract methods left (26.3's StructureProcessorType, now only a
+								// holder of constants) is therefore harmless: the lambda loads, Bridge reads codec().
+								if (r[0] == MISSING && hasAbstractMethod(iface.getInternalName(), 0)) {
 									problem(Report.Kind.MISSING_METHOD, pretty(iface.getInternalName()) + "." + iname + sam.getDescriptor()
 											+ "  (implemented by a lambda)", self[0]);
 								}
@@ -231,6 +235,19 @@ public final class Linker {
 		checkAbstractMethods(self[0]);
 		report.callsRepaired += repaired[0];
 		return repaired[0] > 0 ? writer.toByteArray() : classBytes;
+	}
+
+	/** Does this interface (or one it extends) still have an abstract method? Unknown counts as yes. */
+	private boolean hasAbstractMethod(String iface, int depth) {
+		ClassInfo c = index.get(iface);
+		if (c == null || depth > 16) return true;
+
+		for (Map.Entry<String, Integer> m : c.methods.entrySet()) {
+			if ((m.getValue() & Opcodes.ACC_ABSTRACT) != 0) return true;
+		}
+
+		for (String i : c.interfaces) if (hasAbstractMethod(i, depth + 1)) return true;
+		return false;
 	}
 
 	private Handle checkHandle(Handle h, String user, int[] repaired) {
