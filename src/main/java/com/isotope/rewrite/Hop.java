@@ -40,6 +40,10 @@ public final class Hop {
 		this.modClasses = modClasses;
 	}
 
+	public Hierarchy oldHierarchy() {
+		return oldHierarchy;
+	}
+
 	public ModClass modClass(String name) {
 		return modClasses.get(name);
 	}

@@ -167,6 +167,19 @@ public final class HopRemapper extends ClassRemapper {
 
 			@Override
 			public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
+				// A per-color field that became an entry of a color collection: WHITE_WOOL -> WOOL.white().
+				Object[] color = opcode == Opcodes.GETSTATIC && mv != null ? hop.table.colorField(owner, name) : null;
+
+				if (color != null) {
+					com.isotope.model.RedirectTable.ColorRule r = (com.isotope.model.RedirectTable.ColorRule) color[0];
+					String collection = "net/minecraft/world/level/block/ColorCollection";
+					mv.visitFieldInsn(Opcodes.GETSTATIC, remapper.mapType(owner), r.collection(), "L" + collection + ";");
+					mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, collection, (String) color[1], "()Ljava/lang/Object;", false);
+					mv.visitTypeInsn(Opcodes.CHECKCAST, remapper.mapType(r.elementType()));
+					changes[0]++;
+					return;
+				}
+
 				com.isotope.model.RedirectTable.Stub stub = mv == null ? null : hop.resolveStub(true, owner, name, descriptor);
 
 				if (stub != null) {

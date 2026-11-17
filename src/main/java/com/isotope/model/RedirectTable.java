@@ -68,6 +68,46 @@ public final class RedirectTable {
 
 	public final List<InterfaceRule> interfaceRules = new ArrayList<>();
 
+	/**
+	 * An interface method that was reshaped: implementers of {@code iface} that still have
+	 * {@code oldName oldDesc} get {@code newName newDesc}, which calls the old one with the same
+	 * arguments and returns its result, wrapped in a one-element Stream when {@code wrapStream}.
+	 * With {@code forEach}, the new method takes one extra last argument, a Consumer, and the old
+	 * method's Stream result is fed into it (getPositions(...) -> modify(..., consumer)).
+	 * Hand-written only ({@code a} lines). {@code newDesc} uses the new version's names.
+	 */
+	public record AdapterRule(String iface, String oldName, String oldDesc, String newName, String newDesc, boolean wrapStream, boolean forEach) { }
+
+	public final List<AdapterRule> adapterRules = new ArrayList<>();
+
+	/**
+	 * A family of 16 per-color static fields ({@code WHITE_WOOL} ... {@code BLACK_WOOL} on Blocks)
+	 * replaced by one ColorCollection field read with a per-color accessor ({@code WOOL.white()}).
+	 * Hand-written only ({@code k} lines): owner, old suffix, new collection field, element type.
+	 */
+	public record ColorRule(String owner, String suffix, String collection, String elementType) { }
+
+	public final Map<String, ColorRule> colorRules = new LinkedHashMap<>();
+
+	public static final String[] COLORS = {"LIGHT_BLUE", "LIGHT_GRAY", "WHITE", "ORANGE", "MAGENTA", "YELLOW", "LIME", "PINK", "GRAY",
+			"CYAN", "PURPLE", "BLUE", "BROWN", "GREEN", "RED", "BLACK"};
+
+	/** For a field such as LIGHT_GRAY_WOOL on Blocks: {rule, accessor name ("lightGray")}, or null. */
+	public Object[] colorField(String owner, String name) {
+		if (colorRules.isEmpty()) return null;
+
+		for (String color : COLORS) { // two-word colors are listed first, so LIGHT_GRAY wins over GRAY
+			if (!name.startsWith(color + "_")) continue;
+			ColorRule r = colorRules.get(owner + ' ' + name.substring(color.length() + 1));
+			if (r == null) return null;
+			String[] parts = color.toLowerCase(java.util.Locale.ROOT).split("_");
+			String accessor = parts.length == 1 ? parts[0] : parts[0] + Character.toUpperCase(parts[1].charAt(0)) + parts[1].substring(1);
+			return new Object[] {r, accessor};
+		}
+
+		return null;
+	}
+
 	/** Static methods that moved to another class: "owner name desc" -> new owner. Hand-written only ({@code at=}). */
 	private final Map<String, String> movedTo = new LinkedHashMap<>();
 
@@ -212,6 +252,9 @@ public final class RedirectTable {
 				}
 				case "f" -> t.addField(new Member(p[1], p[2], p[3], p[4], null, false, p.length > 5 && p[5].equals("private")));
 				case "x" -> t.interfaceRules.add(new InterfaceRule(p[1], p[2], p[3], p[4], p[5]));
+				case "k" -> t.colorRules.put(p[1] + ' ' + p[2], new ColorRule(p[1], p[2], p[3], p[4]));
+				case "a" -> t.adapterRules.add(new AdapterRule(p[1], p[2], p[3], p[4], p[5],
+						p.length > 6 && p[6].equals("stream"), p.length > 6 && p[6].equals("foreach")));
 				case "s" -> {
 					// s m|f <owner> <name> <desc> <reason ...>
 					if (!p[1].equals("m") && !p[1].equals("f")) throw new IOException("line " + lineNo + ": stub kind must be m or f");

@@ -18,6 +18,7 @@ public final class ClassRewriter {
 		int before = changes[0];
 		ClassNode node = new ClassNode();
 		new ClassReader(classBytes).accept(node, 0);
+		String oldParent = node.superName; // before renaming, for keepSupertypes below
 		MixinStrings.process(node, hop, changes);
 
 		// COMPUTE_MAXS only recounts stack depth (needed when a POP is inserted after a call that
@@ -36,6 +37,47 @@ public final class ClassRewriter {
 
 			if (InterfaceBridge.apply(cn, new com.isotope.model.RedirectTable.InterfaceRule(rule.cls(), rule.getter(),
 					hop.mapDesc(rule.getterDesc()), rule.newName(), rule.newDesc()), iface, info)) {
+				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				cn.accept(w);
+				out = w.toByteArray();
+				changes[0]++;
+			}
+		}
+
+		// Any mod class (not only direct subclasses) that still has the old type getter needs the new
+		// codec() method, e.g. a subclass of RandomSpreadStructurePlacement in 26.3.
+		for (com.isotope.model.RedirectTable.InterfaceRule rule : hop.table.interfaceRules) {
+			ClassNode cn = new ClassNode();
+			new ClassReader(out).accept(cn, 0);
+
+			if (InterfaceBridge.addCodecBridge(cn, rule.getter(), hop.mapDesc(rule.getterDesc()), rule.newName(), rule.newDesc())) {
+				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				cn.accept(w);
+				out = w.toByteArray();
+				changes[0]++;
+			}
+		}
+
+		// A game parent that lost an interface: the mod class declares it itself, as vanilla subclasses now do.
+		if (oldParent != null && oldParent.startsWith("net/minecraft/")) {
+			ClassNode cn = new ClassNode();
+			new ClassReader(out).accept(cn, 0);
+
+			if (InterfaceBridge.keepSupertypes(cn, oldParent, hop)) {
+				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				cn.accept(w);
+				out = w.toByteArray();
+				changes[0]++;
+			}
+		}
+
+		// Interface methods that were reshaped (hand-written "a" rules): add the new one to implementers.
+		for (com.isotope.model.RedirectTable.AdapterRule rule : hop.table.adapterRules) {
+			String iface = hop.table.mapClass(rule.iface());
+			ClassNode cn = new ClassNode();
+			new ClassReader(out).accept(cn, 0);
+
+			if (InterfaceBridge.adapt(cn, rule, iface, hop.mapDesc(rule.oldDesc()))) {
 				ClassWriter w = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 				cn.accept(w);
 				out = w.toByteArray();

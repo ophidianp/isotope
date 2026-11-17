@@ -1,0 +1,51 @@
+isotope-redirects 1
+# Hand-written rules for 26.1.2 -> 26.2, merged into the generated table at load time.
+# Every line was checked with javap against both client jars. Read CLAUDE.md first.
+from 26.1.2
+to 26.2
+
+# StructureProcessor became an interface in 26.2. In 26.1.2 it was an abstract class with no
+# fields and a constructor that only called Object(); subclasses implemented
+#   protected abstract StructureProcessorType<?> getType()
+# returning a type object whose codec() gave the MapCodec. In 26.2 the interface declares
+#   public abstract MapCodec<? extends StructureProcessor> codec()
+# and BuiltInRegistries.STRUCTURE_PROCESSOR holds MapCodecs instead of type objects.
+# processBlock / finalizeProcessing keep their signatures (now default methods).
+x net/minecraft/world/level/levelgen/structure/templatesystem/StructureProcessor getType ()Lnet/minecraft/world/level/levelgen/structure/templatesystem/StructureProcessorType; codec ()Lcom/mojang/serialization/MapCodec;
+
+# 26.2 replaced the per-color block and item fields with ColorCollection fields (checked with javap):
+# WHITE_WOOL ... BLACK_WOOL became WOOL.white() ... WOOL.black(). ColorCollection is a record with one
+# accessor per color, in DyeColor order; vanilla registers each entry as "<color>_<name>" (white_wool,
+# light_gray_bed, ...), the same registry ids the old fields had, so each entry is the same block/item.
+# Four families were renamed on the way: TERRACOTTA -> DYED_TERRACOTTA, SHULKER_BOX -> DYED_SHULKER_BOX,
+# CANDLE -> DYED_CANDLE, CANDLE_CAKE -> DYED_CANDLE_CAKE, BUNDLE -> DYED_BUNDLE (uncolored TERRACOTTA,
+# SHULKER_BOX, CANDLE, CANDLE_CAKE and BUNDLE still exist and are untouched: they have no color prefix).
+k net/minecraft/world/level/block/Blocks BED BED net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks WOOL WOOL net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks STAINED_GLASS STAINED_GLASS net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks STAINED_GLASS_PANE STAINED_GLASS_PANE net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks CARPET CARPET net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks BANNER BANNER net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks WALL_BANNER WALL_BANNER net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks GLAZED_TERRACOTTA GLAZED_TERRACOTTA net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks CONCRETE CONCRETE net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks CONCRETE_POWDER CONCRETE_POWDER net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks TERRACOTTA DYED_TERRACOTTA net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks SHULKER_BOX DYED_SHULKER_BOX net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks CANDLE DYED_CANDLE net/minecraft/world/level/block/Block
+k net/minecraft/world/level/block/Blocks CANDLE_CAKE DYED_CANDLE_CAKE net/minecraft/world/level/block/Block
+k net/minecraft/world/item/Items WOOL WOOL net/minecraft/world/item/Item
+k net/minecraft/world/item/Items CARPET CARPET net/minecraft/world/item/Item
+k net/minecraft/world/item/Items STAINED_GLASS STAINED_GLASS net/minecraft/world/item/Item
+k net/minecraft/world/item/Items STAINED_GLASS_PANE STAINED_GLASS_PANE net/minecraft/world/item/Item
+k net/minecraft/world/item/Items GLAZED_TERRACOTTA GLAZED_TERRACOTTA net/minecraft/world/item/Item
+k net/minecraft/world/item/Items CONCRETE CONCRETE net/minecraft/world/item/Item
+k net/minecraft/world/item/Items CONCRETE_POWDER CONCRETE_POWDER net/minecraft/world/item/Item
+k net/minecraft/world/item/Items HARNESS HARNESS net/minecraft/world/item/Item
+k net/minecraft/world/item/Items DYE DYE net/minecraft/world/item/Item
+k net/minecraft/world/item/Items BED BED net/minecraft/world/item/Item
+k net/minecraft/world/item/Items BANNER BANNER net/minecraft/world/item/Item
+k net/minecraft/world/item/Items TERRACOTTA DYED_TERRACOTTA net/minecraft/world/item/Item
+k net/minecraft/world/item/Items SHULKER_BOX DYED_SHULKER_BOX net/minecraft/world/item/Item
+k net/minecraft/world/item/Items BUNDLE DYED_BUNDLE net/minecraft/world/item/Item
+k net/minecraft/world/item/Items CANDLE DYED_CANDLE net/minecraft/world/item/Item

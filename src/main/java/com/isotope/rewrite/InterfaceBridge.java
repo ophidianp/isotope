@@ -87,6 +87,132 @@ public final class InterfaceBridge {
 		return true;
 	}
 
+	/**
+	 * Adds {@code codec()} to a class that implements the old type getter itself and has no
+	 * {@code codec()} yet. Used for classes further down the hierarchy than the direct subclasses
+	 * {@link #apply} handles. Interfaces and classes without the getter are left alone.
+	 */
+	public static boolean addCodecBridge(ClassNode cn, String getter, String getterDesc, String newName, String newDesc) {
+		if ((cn.access & Opcodes.ACC_INTERFACE) != 0) return false;
+		boolean hasGetter = cn.methods.stream().anyMatch(m -> m.name.equals(getter) && m.desc.equals(getterDesc) && (m.access & Opcodes.ACC_ABSTRACT) == 0);
+		boolean hasNew = cn.methods.stream().anyMatch(m -> m.name.equals(newName));
+		if (!hasGetter || hasNew) return false;
+		MethodNode bridge = new MethodNode(Opcodes.ACC_PUBLIC, newName, newDesc, null, null);
+		bridge.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+		bridge.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, cn.name, getter, getterDesc, false));
+		bridge.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "com/isotope/runtime/Bridge", "codecOf", "(Ljava/lang/Object;)Ljava/lang/Object;", false));
+		bridge.instructions.add(new TypeInsnNode(Opcodes.CHECKCAST, Type.getReturnType(newDesc).getInternalName()));
+		bridge.instructions.add(new InsnNode(Opcodes.ARETURN));
+		bridge.maxStack = 1;
+		bridge.maxLocals = 1;
+		cn.methods.add(bridge);
+		return true;
+	}
+
+	/**
+	 * Adds the reshaped method of an interface the class implements directly, as a call to the
+	 * class's own old method. The new and old methods must take the same arguments; the old result
+	 * is returned as is (it must fit the new return type) or wrapped with {@code Stream.of}.
+	 */
+	public static boolean adapt(ClassNode cn, RedirectTable.AdapterRule rule, String iface, String oldDescMapped) {
+		if (cn.interfaces == null || !cn.interfaces.contains(iface) || (cn.access & Opcodes.ACC_INTERFACE) != 0) return false;
+		boolean hasOld = cn.methods.stream().anyMatch(m -> m.name.equals(rule.oldName()) && m.desc.equals(oldDescMapped) && (m.access & Opcodes.ACC_ABSTRACT) == 0);
+		boolean hasNew = cn.methods.stream().anyMatch(m -> m.name.equals(rule.newName()) && m.desc.equals(rule.newDesc()));
+		if (!hasOld || hasNew) return false;
+		Type[] oldArgs = Type.getArgumentTypes(oldDescMapped);
+		Type[] newArgs = Type.getArgumentTypes(rule.newDesc());
+		Type[] expected = rule.forEach() ? Arrays.copyOf(oldArgs, oldArgs.length + 1) : oldArgs;
+		if (rule.forEach()) expected[oldArgs.length] = Type.getObjectType("java/util/function/Consumer");
+		if (!Arrays.equals(expected, newArgs)) throw new IllegalStateException("adapter rule arguments do not line up: " + rule);
+
+		MethodNode m = new MethodNode(Opcodes.ACC_PUBLIC, rule.newName(), rule.newDesc(), null, null);
+		m.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+		int slot = 1;
+
+		for (Type a : oldArgs) {
+			m.instructions.add(new VarInsnNode(a.getOpcode(Opcodes.ILOAD), slot));
+			slot += a.getSize();
+		}
+
+		m.instructions.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, cn.name, rule.oldName(), oldDescMapped, false));
+		int locals = slot;
+
+		if (rule.forEach()) {
+			m.instructions.add(new VarInsnNode(Opcodes.ALOAD, slot)); // the consumer
+			m.instructions.add(new MethodInsnNode(Opcodes.INVOKEINTERFACE, "java/util/stream/Stream", "forEach", "(Ljava/util/function/Consumer;)V", true));
+			m.instructions.add(new InsnNode(Opcodes.RETURN));
+			locals = slot + 1;
+		} else {
+			if (rule.wrapStream()) m.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/stream/Stream", "of", "(Ljava/lang/Object;)Ljava/util/stream/Stream;", true));
+			m.instructions.add(new InsnNode(Opcodes.ARETURN));
+		}
+
+		m.maxStack = locals;
+		m.maxLocals = locals;
+		cn.methods.add(m);
+		return true;
+	}
+
+	/**
+	 * Keeps a mod class's supertypes when its game parent lost some. Example (26.3): the mod's
+	 * class extended AbstractPackResources, which implemented PackResources. 26.3 renamed it to
+	 * AbstractPackMetadataResources, which no longer does; vanilla subclasses now add
+	 * "implements PackResources" themselves. The mod class gets the same treatment, otherwise it
+	 * silently stops being a PackResources and fails with ClassCastException where it is used.
+	 *
+	 * @param oldParent the parent's OLD name (in the hop's old hierarchy)
+	 * @return true if interfaces were added
+	 */
+	public static boolean keepSupertypes(ClassNode cn, String oldParent, Hop hop) {
+		if (hop.live == null || cn.superName == null || (cn.access & Opcodes.ACC_INTERFACE) != 0) return false;
+		java.util.Set<String> before = new java.util.LinkedHashSet<>();
+		collectOld(oldParent, hop, before, 0);
+		java.util.Set<String> after = new java.util.HashSet<>();
+		collectLive(cn.superName, hop, after, 0);
+		boolean changed = false;
+
+		for (String oldIface : before) {
+			String iface = hop.table.mapClass(oldIface);
+			if (after.contains(iface) || !iface.startsWith("net/minecraft/")) continue;
+			ClassInfo info = hop.live.get(iface);
+			if (info == null || !info.isInterface()) continue; // gone or no longer an interface: reported elsewhere
+			if (cn.interfaces == null) cn.interfaces = new ArrayList<>();
+
+			if (!cn.interfaces.contains(iface)) {
+				cn.interfaces.add(iface);
+				changed = true;
+			}
+		}
+
+		return changed;
+	}
+
+	/** Interfaces of a class in the hop's OLD game version, including inherited ones. */
+	private static void collectOld(String cls, Hop hop, java.util.Set<String> out, int depth) {
+		if (cls == null || depth > 32) return;
+		com.isotope.model.Hierarchy.Node n = hop.oldHierarchy().get(cls);
+		if (n == null) return;
+
+		for (String i : n.interfaces()) {
+			if (out.add(i)) collectOld(i, hop, out, depth + 1);
+		}
+
+		collectOld(n.superName(), hop, out, depth + 1);
+	}
+
+	/** Interfaces of a class in the running game, including inherited ones. */
+	private static void collectLive(String cls, Hop hop, java.util.Set<String> out, int depth) {
+		if (cls == null || depth > 32) return;
+		ClassInfo c = hop.live.get(cls);
+		if (c == null) return;
+
+		for (String i : c.interfaces) {
+			if (out.add(i)) collectLive(i, hop, out, depth + 1);
+		}
+
+		collectLive(c.superName, hop, out, depth + 1);
+	}
+
 	static List<String> list(String... s) {
 		return new ArrayList<>(Arrays.asList(s));
 	}

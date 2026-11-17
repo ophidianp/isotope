@@ -45,3 +45,39 @@ m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/Re
 m net/minecraft/core/RegistryCodecs homogeneousList (Lnet/minecraft/resources/ResourceKey;Z)Lcom/mojang/serialization/Codec; holderSet
 m net/minecraft/resources/RegistryFileCodec create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;)Lnet/minecraft/resources/RegistryFileCodec; holder (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;)Lcom/mojang/serialization/Codec; cast at=net/minecraft/core/registries/codec/RegistryCodecs
 m net/minecraft/resources/RegistryFileCodec create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;Z)Lnet/minecraft/resources/RegistryFileCodec; create (Lnet/minecraft/resources/ResourceKey;Lcom/mojang/serialization/Codec;Z)Lcom/mojang/serialization/Codec; cast
+
+# Pack$ResourcesSupplier was reshaped in 26.3 (checked with javap):
+#   26.2: PackResources openPrimary(PackLocationInfo); PackResources openFull(PackLocationInfo, Pack$Metadata)
+#   26.3: PackMetadataResources openMetadata(PackLocationInfo); Stream<PackResources> openResources(PackLocationInfo, Pack$Metadata)
+# PackResources extends PackMetadataResources in 26.3, and vanilla's own suppliers return their
+# primary resources from openMetadata and Stream.of(resources) from openResources; 26.2's
+# openFull already merged overlays into one PackResources. So implementers that only have the old
+# methods get the new ones as: openMetadata = openPrimary, openResources = Stream.of(openFull(...)).
+a net/minecraft/server/packs/repository/Pack$ResourcesSupplier openPrimary (Lnet/minecraft/server/packs/PackLocationInfo;)Lnet/minecraft/server/packs/PackResources; openMetadata (Lnet/minecraft/server/packs/PackLocationInfo;)Lnet/minecraft/server/packs/PackMetadataResources;
+a net/minecraft/server/packs/repository/Pack$ResourcesSupplier openFull (Lnet/minecraft/server/packs/PackLocationInfo;Lnet/minecraft/server/packs/repository/Pack$Metadata;)Lnet/minecraft/server/packs/PackResources; openResources (Lnet/minecraft/server/packs/PackLocationInfo;Lnet/minecraft/server/packs/repository/Pack$Metadata;)Ljava/util/stream/Stream; stream
+
+# StructurePlacement was split in 26.3 (checked with javap). The abstract class became an
+# interface with codec(); its state and logic moved to the new AbstractSpreadingStructurePlacement,
+# together with its nested classes (same members; the enum has the same constants in the same order).
+# RandomSpreadStructurePlacement keeps its members except type() -> codec(). The registry
+# STRUCTURE_PLACEMENT now holds MapCodecs. StructurePlacementType (the old one-method "type" interface,
+# codec()) is gone; old mods implement it with lambdas, so it is renamed to Isotope's own TypeObject,
+# which has the same single method.
+c net/minecraft/world/level/levelgen/structure/placement/StructurePlacement$ExclusionZone net/minecraft/world/level/levelgen/structure/placement/AbstractSpreadingStructurePlacement$ExclusionZone
+c net/minecraft/world/level/levelgen/structure/placement/StructurePlacement$FrequencyReducer net/minecraft/world/level/levelgen/structure/placement/AbstractSpreadingStructurePlacement$FrequencyReducer
+c net/minecraft/world/level/levelgen/structure/placement/StructurePlacement$FrequencyReductionMethod net/minecraft/world/level/levelgen/structure/placement/AbstractSpreadingStructurePlacement$FrequencyReductionMethod
+c net/minecraft/world/level/levelgen/structure/placement/StructurePlacementType com/isotope/runtime/TypeObject
+x net/minecraft/world/level/levelgen/structure/placement/StructurePlacement type ()Lnet/minecraft/world/level/levelgen/structure/placement/StructurePlacementType; codec ()Lcom/mojang/serialization/MapCodec;
+
+# Placement modifiers became interfaces in 26.3 (checked with javap). In 26.2 PlacementModifier,
+# PlacementFilter and RepeatingPlacement were abstract classes with no-argument constructors that only
+# chain to Object(); subclasses implemented type() returning a PlacementModifierType (a one-method
+# "type" interface, codec()), now removed. In 26.3 each is an interface with codec(), the registry
+# PLACEMENT_MODIFIER_TYPE holds MapCodecs, and PlacementModifier.getPositions(ctx, random, pos) -> Stream
+# was replaced by modify(ctx, random, pos, Consumer). PlacementFilter and RepeatingPlacement provide
+# modify as a default method (from shouldPlace / count, which keep their signatures).
+c net/minecraft/world/level/levelgen/placement/PlacementModifierType com/isotope/runtime/TypeObject
+x net/minecraft/world/level/levelgen/placement/PlacementModifier type ()Lnet/minecraft/world/level/levelgen/placement/PlacementModifierType; codec ()Lcom/mojang/serialization/MapCodec;
+x net/minecraft/world/level/levelgen/placement/PlacementFilter type ()Lnet/minecraft/world/level/levelgen/placement/PlacementModifierType; codec ()Lcom/mojang/serialization/MapCodec;
+x net/minecraft/world/level/levelgen/placement/RepeatingPlacement type ()Lnet/minecraft/world/level/levelgen/placement/PlacementModifierType; codec ()Lcom/mojang/serialization/MapCodec;
+a net/minecraft/world/level/levelgen/placement/PlacementModifier getPositions (Lnet/minecraft/world/level/levelgen/placement/PlacementContext;Lnet/minecraft/util/RandomSource;Lnet/minecraft/core/BlockPos;)Ljava/util/stream/Stream; modify (Lnet/minecraft/world/level/levelgen/placement/PlacementContext;Lnet/minecraft/util/RandomSource;Lnet/minecraft/core/BlockPos;Ljava/util/function/Consumer;)V foreach

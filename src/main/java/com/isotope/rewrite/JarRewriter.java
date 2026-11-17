@@ -246,6 +246,7 @@ public final class JarRewriter {
 				report.classesTotal++;
 
 				try {
+					if (o.lenientMixins) e.setValue(dropMissingInterfaces(e.getValue(), index, report));
 					e.setValue(linker.check(e.getValue()));
 					ModClass mc = ModClass.scan(e.getValue());
 
@@ -446,6 +447,36 @@ public final class JarRewriter {
 		}
 	}
 
+	/**
+	 * A class (or a mixin, which copies its interfaces onto the game class it targets) that
+	 * implements a game interface this version no longer has cannot load at all. No game code can
+	 * ask for an interface that does not exist, so leaving it out is strictly better: the class,
+	 * and for a mixin its other hooks, keep working. Real case: YUNG's API mixes the removed
+	 * DensityFunctions$BeardifierOrMarker into Beardifier, which stopped world generation.
+	 */
+	private static byte[] dropMissingInterfaces(byte[] classBytes, LiveIndex index, Report report) {
+		ClassNode cn = new ClassNode();
+		new ClassReader(classBytes).accept(cn, 0);
+		if (cn.interfaces == null || cn.interfaces.isEmpty()) return classBytes;
+		List<String> gone = new ArrayList<>();
+
+		for (String i : cn.interfaces) {
+			if (Linker.isGameName(i) && index.get(i) == null) gone.add(i);
+		}
+
+		if (gone.isEmpty()) return classBytes;
+		cn.interfaces.removeAll(gone);
+		if (cn.signature != null) cn.signature = null; // the generic signature would still name the old interface
+
+		for (String i : gone) {
+			report.problem(Report.Kind.MISSING_CLASS, i.replace('/', '.') + "  (no longer implemented by the mod's class; that part is left out)", cn.name);
+		}
+
+		ClassWriter w = new ClassWriter(0);
+		cn.accept(w);
+		return w.toByteArray();
+	}
+
 	// ---------------------------------------------------------------- patching
 
 	private static byte[] relaxRequire(byte[] classBytes) {
@@ -567,6 +598,22 @@ public final class JarRewriter {
 		Path tmp = out.resolveSibling(out.getFileName() + ".tmp");
 
 		try (OutputStream os = Files.newOutputStream(tmp); ZipOutputStream zip = new ZipOutputStream(os)) {
+			// Directory entries first, like a normally built jar. Mods that scan their own packages
+			// (ClassLoader.getResources("com/example/mod")) find nothing without them; YUNG's API's
+			// auto-registration is one.
+			java.util.Set<String> dirs = new java.util.TreeSet<>();
+
+			for (String name : u.entries.keySet()) {
+				for (int i = name.indexOf('/'); i > 0; i = name.indexOf('/', i + 1)) dirs.add(name.substring(0, i + 1));
+			}
+
+			for (String dir : dirs) {
+				ZipEntry ze = new ZipEntry(dir);
+				ze.setTime(315532800000L);
+				zip.putNextEntry(ze);
+				zip.closeEntry();
+			}
+
 			for (Map.Entry<String, byte[]> e : u.entries.entrySet()) {
 				ZipEntry ze = new ZipEntry(e.getKey());
 				ze.setTime(315532800000L); // fixed timestamp: same input, same output bytes

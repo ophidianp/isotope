@@ -33,12 +33,15 @@ public final class DataMigrator {
 	 * @param path the file's path inside the jar, e.g. {@code data/mymod/loot_table/blocks/x.json};
 	 *             used to decide which rules apply
 	 */
+	@SuppressWarnings("unchecked")
 	public static Object migrate(String path, Object json, String from, String to) {
 		if (!supports(from, to)) return json;
 		String folder = folder(path);
 		if (folder == null) return json;
 		boolean worldgen = folder.startsWith("worldgen/") || folder.equals("enchantment");
-		return convert(json, null, worldgen);
+		Object out = convert(json, null, worldgen);
+		if (folder.equals("worldgen/biome") && out instanceof Map<?, ?> biome) out = biome((Map<String, Object>) biome);
+		return out;
 	}
 
 	/** "loot_table", "advancement", "worldgen/processor_list", ... or null if not a data file. */
@@ -151,6 +154,29 @@ public final class DataMigrator {
 		}
 
 		if (worldgen) {
+			// Mob spawn entries: minCount/maxCount -> count (a number, or a uniform range).
+			if (out.get("type") instanceof String && out.get("minCount") instanceof Number min && out.get("maxCount") instanceof Number max) {
+				Map<String, Object> entry = new LinkedHashMap<>();
+
+				for (Map.Entry<String, Object> e : out.entrySet()) {
+					if (e.getKey().equals("minCount")) {
+						if (min.longValue() == max.longValue()) {
+							entry.put("count", min);
+						} else {
+							Map<String, Object> range = new LinkedHashMap<>();
+							range.put("type", "minecraft:uniform");
+							range.put("max_inclusive", max);
+							range.put("min_inclusive", min);
+							entry.put("count", range);
+						}
+					} else if (!e.getKey().equals("maxCount")) {
+						entry.put(e.getKey(), e.getValue());
+					}
+				}
+
+				out = entry;
+			}
+
 			// Block states: {"Name", "Properties"} -> {"id", "properties"}.
 			if (out.get("Name") instanceof String n && n.indexOf(':') > 0 && !out.containsKey("id")) {
 				out = renameKey(out, "Name", "id");
@@ -163,6 +189,42 @@ public final class DataMigrator {
 			}
 		}
 
+		return out;
+	}
+
+	/**
+	 * Biomes: spawn lists and costs moved into the "natural_mob_spawns" environment attribute
+	 * (empty categories are left out), and creature_spawn_probability became an attribute too.
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<String, Object> biome(Map<String, Object> in) {
+		if (!in.containsKey("spawners") && !in.containsKey("creature_spawn_probability")) return in;
+		Map<String, Object> out = new LinkedHashMap<>(in);
+		Map<String, Object> attributes = out.get("attributes") instanceof Map<?, ?> a ? new LinkedHashMap<>((Map<String, Object>) a) : new LinkedHashMap<>();
+
+		if (out.get("spawners") instanceof Map<?, ?> spawners) {
+			Map<String, Object> byCategory = new LinkedHashMap<>();
+
+			for (Map.Entry<String, Object> e : ((Map<String, Object>) spawners).entrySet()) {
+				if (!(e.getValue() instanceof List<?> l) || !l.isEmpty()) byCategory.put(e.getKey(), e.getValue());
+			}
+
+			Map<String, Object> argument = new LinkedHashMap<>();
+			argument.put("spawn_costs", out.get("spawn_costs") instanceof Map<?, ?> c ? c : new LinkedHashMap<>());
+			argument.put("spawns_by_category", byCategory);
+			Map<String, Object> attribute = new LinkedHashMap<>();
+			attribute.put("argument", argument);
+			attribute.put("modifier", "overlay"); // what all 67 vanilla 26.3 biomes use
+			attributes.put("minecraft:gameplay/natural_mob_spawns", attribute);
+			out.remove("spawners");
+			out.remove("spawn_costs");
+		}
+
+		if (out.containsKey("creature_spawn_probability")) {
+			attributes.put("minecraft:gameplay/creature_world_gen_spawn_probability", out.remove("creature_spawn_probability"));
+		}
+
+		out.put("attributes", attributes);
 		return out;
 	}
 
