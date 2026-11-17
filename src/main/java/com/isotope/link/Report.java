@@ -68,16 +68,20 @@ public final class Report {
 	 */
 	public boolean hasFatal() {
 		Map<String, Set<String>> shape = problems.get(Kind.SHAPE_CHANGED);
-		return (shape != null && !shape.isEmpty()) || !startup.isEmpty();
+		return (shape != null && !shape.isEmpty()) || !startup.isEmpty() || !worldgen.isEmpty();
 	}
 
 	/** Problems on code that certainly runs at startup: method -> what it needs that is missing. */
 	public final Map<String, List<String>> startup = new LinkedHashMap<>();
 
+	/** Problems on code the game runs while generating a world (structures, features, ...). */
+	public final Map<String, List<String>> worldgen = new LinkedHashMap<>();
+
 	public String fatalReason() {
 		Map<String, Set<String>> shape = problems.get(Kind.SHAPE_CHANGED);
 		if (shape != null && !shape.isEmpty()) return "some of its classes can no longer be loaded (see \"class changed shape\")";
-		return "its initializer uses something that no longer exists, so it would crash every launch (see \"fails at startup\")";
+		if (!startup.isEmpty()) return "its initializer uses something that no longer exists, so it would crash every launch (see \"fails at startup\")";
+		return "its world generation uses something that no longer exists, so creating or loading a world would fail (see \"fails during world generation\")";
 	}
 
 	public int seriousCount() {
@@ -119,6 +123,15 @@ public final class Report {
 			sb.append("\n   fails at startup - reached from the mod's initializer (").append(startup.size()).append("):\n");
 
 			for (Map.Entry<String, List<String>> e : startup.entrySet()) {
+				sb.append("     - ").append(e.getKey()).append(" needs:\n");
+				for (String p : new java.util.LinkedHashSet<>(e.getValue())) sb.append("         ").append(p).append('\n');
+			}
+		}
+
+		if (!worldgen.isEmpty()) {
+			sb.append("\n   fails during world generation - reached from the mod's world-generation code (").append(worldgen.size()).append("):\n");
+
+			for (Map.Entry<String, List<String>> e : worldgen.entrySet()) {
 				sb.append("     - ").append(e.getKey()).append(" needs:\n");
 				for (String p : new java.util.LinkedHashSet<>(e.getValue())) sb.append("         ").append(p).append('\n');
 			}

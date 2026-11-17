@@ -78,6 +78,7 @@ final class Bootstrap {
 		}
 
 		List<LoaderBridge.Candidate> candidates = new ArrayList<>();
+		java.util.Map<LoaderBridge.Candidate, Path> bundledWith = new java.util.HashMap<>();
 		StringBuilder reportText = new StringBuilder();
 		reportText.append("Isotope ").append(isotopeVersion).append(" on Minecraft ").append(running).append("\n")
 				.append("This file is rewritten on every launch. 'used in' lists the mod's classes that would hit the problem.\n\n");
@@ -153,7 +154,12 @@ final class Bootstrap {
 						continue;
 					}
 
-					for (Path jar : jars) candidates.add(LoaderBridge.readCandidate(jar));
+					for (Path jar : jars) {
+						LoaderBridge.Candidate c = LoaderBridge.readCandidate(jar);
+						candidates.add(c);
+						// The first jar is the mod itself; the others are libraries it bundles, which only come along with it.
+						bundledWith.put(c, jars.get(0).equals(jar) ? null : jars.get(0));
+					}
 				} catch (Throwable t) {
 					IsotopeLog.error("could not process " + label + "; it will not be loaded", t);
 					reportText.append("== ").append(label).append("\n   FAILED: ").append(t).append("\n\n");
@@ -163,6 +169,10 @@ final class Bootstrap {
 
 		List<String> messages = new ArrayList<>();
 		List<LoaderBridge.Candidate> accepted = LoaderBridge.resolve(candidates, messages);
+		// A library bundled inside a mod that is not loaded stays out too.
+		Set<Path> acceptedJars = new HashSet<>();
+		for (LoaderBridge.Candidate c : accepted) acceptedJars.add(c.jar());
+		accepted.removeIf(c -> bundledWith.get(c) != null && !acceptedJars.contains(bundledWith.get(c)));
 		for (String m : messages) IsotopeLog.info(m);
 
 		if (!messages.isEmpty()) {

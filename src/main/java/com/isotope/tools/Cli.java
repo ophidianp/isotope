@@ -37,6 +37,7 @@ public final class Cli {
 		String from = null;
 		Path out = null;
 		boolean lenient = true;
+		boolean server = false;
 
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i]) {
@@ -45,12 +46,13 @@ public final class Cli {
 			case "--from" -> from = args[++i];
 			case "--out" -> out = Paths.get(args[++i]);
 			case "--strict-mixins" -> lenient = false;
+			case "--server" -> server = true; // checking against a dedicated-server jar: client code is not run
 			default -> mods.add(Paths.get(args[i]));
 			}
 		}
 
 		if (classpath.isEmpty() || target == null || out == null || mods.isEmpty()) {
-			System.err.println("usage: Cli --game <minecraft.jar> --target <version> [--from <version>] [--lib <jar>]... --out <dir> <mod.jar>...");
+			System.err.println("usage: Cli --game <minecraft.jar> --target <version> [--server] [--from <version>] [--lib <jar>]... --out <dir> <mod.jar>...");
 			System.exit(2);
 		}
 
@@ -71,6 +73,7 @@ public final class Cli {
 			o.targetLabel = target;
 			o.forcedSource = from == null ? null : graph.normalize(from);
 			o.lenientMixins = lenient;
+			o.dedicatedServer = server;
 			o.allowedVersions = VersionDetect.allowedVersions(graph);
 
 			try {

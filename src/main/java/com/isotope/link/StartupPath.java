@@ -70,8 +70,6 @@ public final class StartupPath {
 		}
 
 		Deque<String> queue = new ArrayDeque<>();
-		Set<String> seen = new HashSet<>();
-		Map<String, List<String>> found = new LinkedHashMap<>();
 
 		for (String ep : entrypointClasses) {
 			queue.add(ep + " <clinit>()V");
@@ -89,6 +87,35 @@ public final class StartupPath {
 				queue.add(ep + ' ' + m);
 			}
 		}
+
+		return search(queue, ownClasses, infos, created, subtypes, problemsByMethod);
+	}
+
+	/**
+	 * Same search, starting from explicit methods ("owner name+desc"). Used for the methods the game
+	 * calls while it generates a world: those run as soon as a world is created or loaded.
+	 */
+	public static Map<String, List<String>> findFrom(Map<String, byte[]> ownClasses, List<String> startMethods,
+			Map<String, List<String>> problemsByMethod) {
+		Map<String, Info> infos = new HashMap<>();
+		Set<String> created = new HashSet<>();
+		Map<String, List<String>> subtypes = new HashMap<>();
+
+		for (String c : ownClasses.keySet()) {
+			Info info = info(c, ownClasses, infos);
+			if (info == null) continue;
+			created.addAll(info.instantiates);
+			if (info.superName != null) subtypes.computeIfAbsent(info.superName, k -> new ArrayList<>()).add(c);
+			for (String i : info.interfaces) subtypes.computeIfAbsent(i, k -> new ArrayList<>()).add(c);
+		}
+
+		return search(new ArrayDeque<>(startMethods), ownClasses, infos, created, subtypes, problemsByMethod);
+	}
+
+	private static Map<String, List<String>> search(Deque<String> queue, Map<String, byte[]> ownClasses, Map<String, Info> infos,
+			Set<String> created, Map<String, List<String>> subtypes, Map<String, List<String>> problemsByMethod) {
+		Set<String> seen = new HashSet<>();
+		Map<String, List<String>> found = new LinkedHashMap<>();
 
 		while (!queue.isEmpty()) {
 			String key = queue.poll();

@@ -273,6 +273,9 @@ public final class JarRewriter {
 		}
 
 		report.startup.putAll(com.isotope.link.StartupPath.find(ownClasses, entrypoints, linker.problemsByMethod, !o.dedicatedServer));
+		Map<String, List<String>> wg = com.isotope.link.StartupPath.findFrom(ownClasses, worldgenMethods(ownClasses, index), linker.problemsByMethod);
+		wg.keySet().removeAll(report.startup.keySet());
+		report.worldgen.putAll(wg);
 
 		// --- metadata
 		for (Unit u : units) {
@@ -445,6 +448,48 @@ public final class JarRewriter {
 				out.add((colons >= 0 ? value.substring(0, colons) : value).replace('.', '/'));
 			}
 		}
+	}
+
+	/**
+	 * The mod's methods that the game calls while generating a world: overrides of methods of game
+	 * classes or interfaces in net.minecraft.world.level.levelgen (structures, features, placements,
+	 * processors, ...). World generation runs as soon as a world is created or loaded, so a missing
+	 * reference on these paths is as certain a failure as one in the initializer, and worse: the
+	 * failing generation task never finishes, so the server hangs instead of crashing.
+	 */
+	private static List<String> worldgenMethods(Map<String, byte[]> ownClasses, LiveIndex index) {
+		List<String> seeds = new ArrayList<>();
+
+		for (Map.Entry<String, byte[]> e : ownClasses.entrySet()) {
+			com.isotope.model.ClassInfo c = index.get(e.getKey());
+			if (c == null || c.isInterface() || (c.access & org.objectweb.asm.Opcodes.ACC_ABSTRACT) != 0) continue;
+			Set<String> gameMethods = new HashSet<>();
+			collectWorldgenMethods(c, index, gameMethods, new HashSet<>(), false);
+			if (gameMethods.isEmpty()) continue;
+
+			for (Map.Entry<String, Integer> m : c.methods.entrySet()) {
+				int acc = m.getValue();
+				if ((acc & (org.objectweb.asm.Opcodes.ACC_STATIC | org.objectweb.asm.Opcodes.ACC_ABSTRACT)) != 0) continue;
+				if (gameMethods.contains(m.getKey())) seeds.add(e.getKey() + ' ' + m.getKey());
+			}
+		}
+
+		return seeds;
+	}
+
+	private static void collectWorldgenMethods(com.isotope.model.ClassInfo c, LiveIndex index, Set<String> out, Set<String> seen, boolean inGame) {
+		if (c == null || !seen.add(c.name)) return;
+		boolean game = c.name.startsWith("net/minecraft/world/level/levelgen/");
+
+		if (game) {
+			for (Map.Entry<String, Integer> m : c.methods.entrySet()) {
+				int acc = m.getValue();
+				if ((acc & (org.objectweb.asm.Opcodes.ACC_STATIC | org.objectweb.asm.Opcodes.ACC_PRIVATE)) == 0 && !m.getKey().startsWith("<")) out.add(m.getKey());
+			}
+		}
+
+		if (c.superName != null) collectWorldgenMethods(index.get(c.superName), index, out, seen, inGame || game);
+		for (String i : c.interfaces) collectWorldgenMethods(index.get(i), index, out, seen, inGame || game);
 	}
 
 	/**
