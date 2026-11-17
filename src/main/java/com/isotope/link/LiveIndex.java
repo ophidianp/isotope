@@ -18,6 +18,28 @@ public final class LiveIndex {
 	/** Looks a class up by internal name; returns its bytes or null. */
 	public interface Source {
 		byte[] find(String internalName);
+
+		/** True if this source has any class in the package ("dev/example/lib/"). Optional. */
+		default boolean hasPackage(String packagePath) {
+			return false;
+		}
+	}
+
+	/**
+	 * True if some installed jar has classes in this package. Tells "the library is not installed"
+	 * (an optional integration that stays dormant) from "the library is installed, but in a version
+	 * without this class" (a real failure).
+	 */
+	public boolean hasPackage(String packagePath) {
+		for (Source s : sources) {
+			try {
+				if (s.hasPackage(packagePath)) return true;
+			} catch (RuntimeException e) {
+				// ignore this source
+			}
+		}
+
+		return false;
 	}
 
 	private static final ClassInfo MISSING = new ClassInfo("", null, null, 0, Map.of(), Map.of());

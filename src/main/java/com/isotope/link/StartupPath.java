@@ -29,8 +29,11 @@ import org.objectweb.asm.Opcodes;
  * "platform helper" pattern of multi-loader mods. Classes the mod never creates are
  * ignored, which keeps false alarms down.
  *
- * <p>Lambdas are followed only when created in a static initializer, where they are nearly
- * always codec builders that run immediately.
+ * <p>Lambdas are followed when created in a static initializer, where they are nearly always
+ * codec builders that run immediately, and when created in a method that registers a callback
+ * on a Fabric API event that fires during startup, data loading or ticking (loot tables, server
+ * lifecycle, ticks, commands; see {@link #STARTUP_EVENTS}). Callbacks for player actions are not
+ * followed: they may never run.
  *
  * <p>It errs towards silence: it does not follow other lambdas or event callbacks (they run
  * when the event fires, which may or may not be at startup) or reflection. What it reports is
@@ -148,6 +151,22 @@ public final class StartupPath {
 		return found;
 	}
 
+	/**
+	 * Fabric API event holders whose events fire while the game starts, loads data or ticks.
+	 * Events that fire on player actions (using a block, attacking, ...) are deliberately not here:
+	 * their callbacks may never run, so a missing reference in them is not a certain failure.
+	 */
+	private static final Set<String> STARTUP_EVENTS = Set.of("LootTableEvents", "ServerLifecycleEvents", "ServerTickEvents",
+			"ServerWorldEvents", "ServerLevelEvents", "CommonLifecycleEvents", "DynamicRegistrySetupCallback", "RegistryEntryAddedCallback",
+			"DefaultItemComponentEvents", "CommandRegistrationCallback", "ClientLifecycleEvents", "ClientTickEvents");
+
+	static boolean isStartupEvent(String owner) {
+		if (!owner.startsWith("net/fabricmc/fabric/api/")) return false;
+		String simple = owner.substring(owner.lastIndexOf('/') + 1);
+		int dollar = simple.indexOf('$');
+		return STARTUP_EVENTS.contains(dollar > 0 ? simple.substring(0, dollar) : simple);
+	}
+
 	private static Set<String> allSubtypes(String cls, Map<String, List<String>> subtypes) {
 		Set<String> out = new HashSet<>();
 		Deque<String> todo = new ArrayDeque<>(subtypes.getOrDefault(cls, List.of()));
@@ -198,10 +217,21 @@ public final class StartupPath {
 						in.methods.add(self);
 						List<String> edges = new ArrayList<>();
 						in.edges.put(self, edges);
+						// Callbacks: the lambdas made since the last Event.register, and which event holder was read
+						// just before. Bytecode for EVENT.register(callback) is: getstatic EVENT; invokedynamic; register.
+						List<String> pending = new ArrayList<>();
+						String[] currentEvent = new String[1];
 
 						return new MethodVisitor(Opcodes.ASM9) {
 							@Override
 							public void visitMethodInsn(int opcode, String owner, String mname, String mdesc, boolean itf) {
+								// Fabric API events: a callback registered here runs as soon as its event fires,
+								// which for most events is while the game starts or loads data.
+								if (owner.equals("net/fabricmc/fabric/api/event/Event") && mname.equals("register")) {
+									if (currentEvent[0] != null && isStartupEvent(currentEvent[0])) edges.addAll(pending);
+									pending.clear();
+									currentEvent[0] = null;
+								}
 								if (!own.containsKey(owner)) return;
 								boolean virtual = opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE;
 								edges.add((virtual ? "V" : "") + owner + ' ' + mname + mdesc);
@@ -209,6 +239,10 @@ public final class StartupPath {
 
 							@Override
 							public void visitFieldInsn(int opcode, String owner, String fname, String fdesc) {
+								if (opcode == Opcodes.GETSTATIC && fdesc.equals("Lnet/fabricmc/fabric/api/event/Event;")) {
+									currentEvent[0] = owner;
+									pending.clear();
+								}
 								if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && own.containsKey(owner)) edges.add(owner + " <clinit>()V");
 							}
 
@@ -217,8 +251,11 @@ public final class StartupPath {
 								// Lambdas made in a static initializer are nearly always run right away
 								// (RecordCodecBuilder.mapCodec(i -> ...) and similar), so follow them there.
 								// Elsewhere they are usually callbacks for later and are not followed.
-								if (!name.equals("<clinit>") || !bsm.getOwner().equals("java/lang/invoke/LambdaMetafactory") || args.length < 2) return;
-								if (args[1] instanceof org.objectweb.asm.Handle h && own.containsKey(h.getOwner())) edges.add(h.getOwner() + ' ' + h.getName() + h.getDesc());
+								if (!bsm.getOwner().equals("java/lang/invoke/LambdaMetafactory") || args.length < 2) return;
+								if (!(args[1] instanceof org.objectweb.asm.Handle h) || !own.containsKey(h.getOwner())) return;
+								String target = h.getOwner() + ' ' + h.getName() + h.getDesc();
+								if (name.equals("<clinit>")) edges.add(target);
+								else pending.add(target);
 							}
 
 							@Override

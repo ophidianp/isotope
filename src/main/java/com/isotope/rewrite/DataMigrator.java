@@ -40,8 +40,43 @@ public final class DataMigrator {
 		if (folder == null) return json;
 		boolean worldgen = folder.startsWith("worldgen/") || folder.equals("enchantment");
 		if (from.equals("26.3")) return Back.migrate(folder, json, worldgen);
+		if (folder.equals("loot_table") || folder.equals("item_modifier")) json = typeUntypedRanges(json);
 		Object out = convert(json, null, worldgen);
 		if (folder.equals("worldgen/biome") && out instanceof Map<?, ?> biome) out = biome((Map<String, Object>) biome);
+		return out;
+	}
+
+	/**
+	 * 26.2 read an untyped {"min": a, "max": b} number provider as a uniform one; 26.3 needs the type.
+	 * Ranges inside predicates ("predicate", "range") are a different thing (bounds checks, never
+	 * typed) and are left alone.
+	 */
+	@SuppressWarnings("unchecked")
+	static Object typeUntypedRanges(Object node) {
+		if (node instanceof List<?> list) {
+			List<Object> out = new ArrayList<>();
+			for (Object o : list) out.add(typeUntypedRanges(o));
+			return out;
+		}
+
+		if (!(node instanceof Map<?, ?>)) return node;
+		Map<String, Object> in = (Map<String, Object>) node;
+
+		if (in.size() == 2 && in.get("min") instanceof Number && in.get("max") instanceof Number) {
+			Map<String, Object> typed = new LinkedHashMap<>();
+			typed.put("type", "minecraft:uniform");
+			typed.putAll(in);
+			return typed;
+		}
+
+		Map<String, Object> out = new LinkedHashMap<>();
+
+		for (Map.Entry<String, Object> e : in.entrySet()) {
+			String k = e.getKey();
+			boolean bounds = k.equals("predicate") || k.equals("predicates") || k.equals("range");
+			out.put(k, bounds ? e.getValue() : typeUntypedRanges(e.getValue()));
+		}
+
 		return out;
 	}
 

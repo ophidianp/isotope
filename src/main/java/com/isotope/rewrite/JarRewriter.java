@@ -268,9 +268,9 @@ public final class JarRewriter {
 		// --- what certainly runs at startup
 		List<String> entrypoints = new ArrayList<>();
 
-		for (Unit u : units) {
-			if (u.json != null) collectEntrypoints(u.json, o.dedicatedServer, entrypoints);
-		}
+		// Only the mod's own entrypoints: a library bundled inside it is often replaced by a native copy
+		// for this version, so problems in the bundled copy's initializer are not the mod's.
+		if (units.get(0).json != null) collectEntrypoints(units.get(0).json, o.dedicatedServer, entrypoints);
 
 		report.startup.putAll(com.isotope.link.StartupPath.find(ownClasses, entrypoints, linker.problemsByMethod, !o.dedicatedServer));
 		Map<String, List<String>> wg = com.isotope.link.StartupPath.findFrom(ownClasses, worldgenMethods(ownClasses, index), linker.problemsByMethod);
@@ -451,9 +451,9 @@ public final class JarRewriter {
 	}
 
 	/**
-	 * The mod's methods that the game calls while generating a world: overrides of methods of game
-	 * classes or interfaces in net.minecraft.world.level.levelgen (structures, features, placements,
-	 * processors, ...). World generation runs as soon as a world is created or loaded, so a missing
+	 * The mod's methods that run while the game generates a world: the methods of the mod's classes
+	 * that extend game classes or interfaces in net.minecraft.world.level.levelgen (structures,
+	 * features, placements, processors, ...). World generation runs as soon as a world is created or loaded, so a missing
 	 * reference on these paths is as certain a failure as one in the initializer, and worse: the
 	 * failing generation task never finishes, so the server hangs instead of crashing.
 	 */
@@ -462,15 +462,21 @@ public final class JarRewriter {
 
 		for (Map.Entry<String, byte[]> e : ownClasses.entrySet()) {
 			com.isotope.model.ClassInfo c = index.get(e.getKey());
-			if (c == null || c.isInterface() || (c.access & org.objectweb.asm.Opcodes.ACC_ABSTRACT) != 0) continue;
+			// Abstract classes count too: a library's abstract structure base class has real methods
+			// that concrete subclasses, possibly in other mods, inherit and the game calls.
+			if (c == null || c.isInterface()) continue;
 			Set<String> gameMethods = new HashSet<>();
 			collectWorldgenMethods(c, index, gameMethods, new HashSet<>(), false);
 			if (gameMethods.isEmpty()) continue;
 
+			// A class that extends a world-generation class exists for world generation, and its helper
+			// methods run then too (often called back and forth with subclasses in other mods, which a
+			// per-mod analysis cannot follow). So every method counts, not only the overrides.
 			for (Map.Entry<String, Integer> m : c.methods.entrySet()) {
 				int acc = m.getValue();
-				if ((acc & (org.objectweb.asm.Opcodes.ACC_STATIC | org.objectweb.asm.Opcodes.ACC_ABSTRACT)) != 0) continue;
-				if (gameMethods.contains(m.getKey())) seeds.add(e.getKey() + ' ' + m.getKey());
+				// Static helpers too (Library Ferret's isValidStructureBiome is only called from another mod).
+				if ((acc & org.objectweb.asm.Opcodes.ACC_ABSTRACT) != 0 || m.getKey().startsWith("<")) continue;
+				seeds.add(e.getKey() + ' ' + m.getKey());
 			}
 		}
 

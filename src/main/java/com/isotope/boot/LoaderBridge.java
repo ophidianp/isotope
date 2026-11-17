@@ -149,7 +149,25 @@ final class LoaderBridge {
 		List<LiveIndex.Source> sources = new ArrayList<>();
 		// The game jar is deliberately read as a file: the class loader refuses game classes this early.
 		sources.add(name -> isGame(name) ? readFrom(gameRoots, name) : null);
-		sources.add(name -> isGame(name) ? null : readFrom(modRoots, name));
+		sources.add(new LiveIndex.Source() {
+			@Override
+			public byte[] find(String name) {
+				return isGame(name) ? null : readFrom(modRoots, name);
+			}
+
+			@Override
+			public boolean hasPackage(String pkg) {
+				for (Path root : modRoots) {
+					try {
+						if (Files.isDirectory(root.resolve(pkg))) return true; // directories, including any sub-packages
+					} catch (RuntimeException e) {
+						// next root
+					}
+				}
+
+				return false;
+			}
+		});
 		sources.add(libraries);
 		sources.add(name -> readResource(knot, name));
 		sources.add(name -> readResource(ClassLoader.getSystemClassLoader(), name));

@@ -59,7 +59,18 @@ public final class Cli {
 		Map<String, byte[]> classes = new HashMap<>();
 		for (Path p : classpath) index(Files.readAllBytes(p), classes);
 		List<LiveIndex.Source> sources = new ArrayList<>();
-		sources.add(classes::get);
+		sources.add(new LiveIndex.Source() {
+			@Override
+			public byte[] find(String name) {
+				return classes.get(name);
+			}
+
+			@Override
+			public boolean hasPackage(String pkg) {
+				for (String c : classes.keySet()) if (c.startsWith(pkg)) return true;
+				return false;
+			}
+		});
 		sources.add(Cli::jdkClass);
 		VersionGraph graph = VersionGraph.load();
 		String normalized = graph.normalize(target);

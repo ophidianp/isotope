@@ -86,7 +86,15 @@ public final class Linker {
 
 	private Report.Kind missingKind(String internalName) {
 		if (dedicatedServer && isClientOnly(internalName)) return Report.Kind.CLIENT_ONLY;
-		return isGameName(internalName) ? Report.Kind.MISSING_CLASS : Report.Kind.NOT_INSTALLED;
+		if (isGameName(internalName)) return Report.Kind.MISSING_CLASS;
+		// Another mod's class: dormant if that mod is not installed, but a real failure if it is
+		// installed in a version that no longer has the class.
+		// The library's root package (first three segments, e.g. dev/worldgen/lithostitched/): a newer
+		// version may have dropped the class's whole sub-package.
+		String[] parts = internalName.split("/");
+		if (parts.length < 4) return Report.Kind.NOT_INSTALLED;
+		String root = parts[0] + "/" + parts[1] + "/" + parts[2] + "/";
+		return index.hasPackage(root) ? Report.Kind.MISSING_CLASS : Report.Kind.NOT_INSTALLED;
 	}
 
 	public static boolean isGameName(String internalName) {
