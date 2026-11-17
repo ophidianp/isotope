@@ -12,7 +12,7 @@ It works in both directions: an older mod on a newer game (a 26.1.2 mod on
 
 Website: https://ophidianp.github.io/isotope/ · Downloads: [GitHub Releases](https://github.com/ophidianp/isotope/releases)
 
-> **Status: 0.1.0, early.** Boot-tested on a 26.3 dedicated server with real
+> **Status: 1.0.1.** Boot-tested on a 26.3 dedicated server with real
 > 26.1.x mods from Modrinth (results below). **Not tested on a client yet.**
 > Read [What it cannot do](#what-it-cannot-do) before expecting any particular
 > mod to work.
