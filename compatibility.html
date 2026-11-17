@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0a0913">
-    <meta name="description" content="Real results: twelve Fabric mods built for Minecraft 26.1.x, run through Isotope on a 26.3 server.">
+    <meta name="description" content="Real results: 33 Fabric mods run through Isotope, forwards onto 26.3 and backwards onto 26.2.">
     <title>Compatibility · Isotope</title>
     <link rel="icon" type="image/png" href="assets/isotope-icon.png">
     <script>try{document.documentElement.dataset.theme=localStorage.getItem("isotope-theme")==="light"?"light":"dark"}catch(e){}</script>
@@ -41,15 +41,15 @@
       <section class="page-hero wrap">
         <p class="eyebrow" data-reveal><span class="status-dot"></span> Compatibility</p>
         <h1 class="split">Real mods. <span class="grad">Real results.</span></h1>
-        <p class="lede" data-reveal style="--d: 300ms">We took twelve Fabric mods from Modrinth whose newest build is for 26.1.x, plus a library built for 26.2, and put them through Isotope on a Minecraft 26.3 dedicated server. Here is exactly what happened, and what each fix changed.</p>
+        <p class="lede" data-reveal style="--d: 300ms">We took Fabric mods from Modrinth built for 26.1.2 and 26.2 and booted them on a Minecraft 26.3 dedicated server, then took 26.3 mods and booted them on 26.2. Here is exactly what happened. Every "held back" mod was stopped by Isotope before it could crash; where it says "confirmed", we switched the safety check off and watched the crash happen.</p>
       </section>
 
       <section class="wrap">
         <dl class="specs" data-stagger aria-label="Test setup">
-          <div><dt>Game</dt><dd>Minecraft 26.3 server</dd></div>
+          <div><dt>Game</dt><dd>Minecraft 26.3 and 26.2 servers</dd></div>
           <div><dt>Loader</dt><dd>Fabric 0.19.5</dd></div>
           <div><dt>Installed normally</dt><dd>Fabric API, Cloth Config, CCA, Forge Config API Port, YACL</dd></div>
-          <div><dt>Isotope</dt><dd>0.1.0 (in development)</dd></div>
+          <div><dt>Isotope</dt><dd>1.0.1</dd></div>
         </dl>
       </section>
 
@@ -57,31 +57,47 @@
         <div class="section-head">
           <div>
             <p class="eyebrow" data-reveal>Results</p>
-            <h2 class="split" id="results-heading">Seven loaded. <span class="dim">Three on the way. Three held back.</span></h2>
+            <h2 class="split" id="results-heading">15 loaded. <span class="dim">The rest held back safely.</span></h2>
           </div>
           <p data-reveal>"Left over" counts references that still did not resolve after the rewrite. A mod can load with some left over if they sit in code that rarely runs.</p>
         </div>
         <div class="table-wrap" data-reveal>
           <table class="data-table">
-            <thead><tr><th>Mod</th><th>Built for</th><th>Redirected</th><th>Left over</th><th>Result</th></tr></thead>
+            <thead><tr><th>Mod</th><th>Built for</th><th>Runs on</th><th>Redirected</th><th>Left over</th><th>Result</th></tr></thead>
             <tbody>
-              <tr><td>Too Fast</td><td class="num">26.1</td><td class="num">0</td><td class="num">0</td><td><span class="verdict good">Loaded</span></td></tr>
-              <tr><td>Fishing Real</td><td class="num">26.1.2</td><td class="num">3</td><td class="num">1</td><td><span class="verdict good">Loaded</span></td></tr>
-              <tr><td>Nyf's Spiders</td><td class="num">26.1</td><td class="num">7</td><td class="num">12</td><td><span class="verdict good">Loaded</span></td></tr>
-              <tr><td>Patchouli</td><td class="num">26.1</td><td class="num">79</td><td class="num">26</td><td><span class="verdict good">Loaded</span></td></tr>
-              <tr><td>Thermoo</td><td class="num">26.1</td><td class="num">182</td><td class="num">23</td><td><span class="verdict good">Loaded (fixed: moved registry codecs)</span></td></tr>
-              <tr><td>Fabric Waystones</td><td class="num">26.1</td><td class="num">29</td><td class="num">29</td><td><span class="verdict good">Loaded (fixed: data files, with owo-lib)</span></td></tr>
-              <tr><td>owo-lib (library)</td><td class="num">26.2</td><td class="num">688</td><td class="num">185</td><td><span class="verdict good">Loaded (fixed: rescued classes, soft mixins)</span></td></tr>
-              <tr><td>YUNG's API</td><td class="num">26.1.2</td><td class="num">80</td><td class="num">36</td><td><span class="verdict warn">Being fixed: now reaches world generation</span></td></tr>
-              <tr><td>YUNG's Better Dungeons</td><td class="num">26.1.2</td><td class="num">74</td><td class="num">14</td><td><span class="verdict warn">Being fixed: needs YUNG's API</span></td></tr>
-              <tr><td>Paxi</td><td class="num">26.1.2</td><td class="num">0</td><td class="num">0</td><td><span class="verdict warn">Being fixed: needs YUNG's API</span></td></tr>
-              <tr><td>Carved Wood</td><td class="num">26.1</td><td class="num">33</td><td class="num">10</td><td><span class="verdict bad">Held back: startup crash (fuel API removed)</span></td></tr>
-              <tr><td>Artifacts</td><td class="num">26.1</td><td class="num">25</td><td class="num">46</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
-              <tr><td>Frostiful</td><td class="num">26.1</td><td class="num">256</td><td class="num">95</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
+              <tr><td>Too Fast</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>Fishing Real</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">3</td><td class="num">1</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>Nyf's Spiders</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">11</td><td class="num">47</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>Patchouli</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">83</td><td class="num">77</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>Thermoo</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">190</td><td class="num">35</td><td><span class="verdict good">Loaded (fixed: moved registry codecs)</span></td></tr>
+              <tr><td>The Lost Castle</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">5</td><td class="num">1</td><td><span class="verdict good">Loaded (fixed: false alarm on a lambda)</span></td></tr>
+              <tr><td>Medieval Buildings</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>Fabric Waystones</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">38</td><td class="num">32</td><td><span class="verdict good">Loaded, with owo-lib (not with Lithostitched installed)</span></td></tr>
+              <tr><td>owo-lib (library)</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">691</td><td class="num">197</td><td><span class="verdict good">Loaded (fixed: rescued classes, soft mixins)</span></td></tr>
+              <tr><td>Guard Villagers</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">31</td><td class="num">51</td><td><span class="verdict good">Loaded</span></td></tr>
+              <tr><td>BackSlot</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">10</td><td class="num">15</td><td><span class="verdict good">Loaded (backwards)</span></td></tr>
+              <tr><td>Dragon Loot</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">1</td><td class="num">19</td><td><span class="verdict good">Loaded (backwards)</span></td></tr>
+              <tr><td>Herds Panic</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">0</td><td><span class="verdict good">Loaded (backwards)</span></td></tr>
+              <tr><td>Recipe Remover</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">0</td><td><span class="verdict good">Loaded (backwards)</span></td></tr>
+              <tr><td>libz (library)</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">6</td><td class="num">8</td><td><span class="verdict good">Loaded (backwards)</span></td></tr>
+              <tr><td>YUNG's API</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">80</td><td class="num">37</td><td><span class="verdict bad">Held back: world generation changed</span></td></tr>
+              <tr><td>YUNG's Better Dungeons, Paxi</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">74</td><td class="num">13</td><td><span class="verdict bad">Held back: need YUNG's API</span></td></tr>
+              <tr><td>Library Ferret</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">20</td><td class="num">7</td><td><span class="verdict bad">Held back: world generation changed (crash confirmed)</span></td></tr>
+              <tr><td>Better Village, Awesome Dungeon Ocean</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="verdict bad">Held back: need Library Ferret</span></td></tr>
+              <tr><td>Moonlight</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">472</td><td class="num">244</td><td><span class="verdict bad">Held back: class changed shape (crash confirmed)</span></td></tr>
+              <tr><td>Dummmmmmy, Sawmill</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">11</td><td class="num">42</td><td><span class="verdict bad">Held back: need Moonlight</span></td></tr>
+              <tr><td>Carved Wood</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">37</td><td class="num">26</td><td><span class="verdict bad">Held back: startup crash (fuel API removed)</span></td></tr>
+              <tr><td>Amendments</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">121</td><td class="num">115</td><td><span class="verdict bad">Held back: startup crash</span></td></tr>
+              <tr><td>Artifacts</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">81</td><td class="num">58</td><td><span class="verdict bad">Held back: class changed shape (crash confirmed)</span></td></tr>
+              <tr><td>Frostiful</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">276</td><td class="num">133</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
+              <tr><td>Nature's Spirit</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">185</td><td class="num">138</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
+              <tr><td>Regions Unexplored</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">473</td><td class="num">171</td><td><span class="verdict bad">Held back: class changed shape</span></td></tr>
+              <tr><td>Dehydration</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">26</td><td class="num">17</td><td><span class="verdict bad">Held back: startup crash (confirmed)</span></td></tr>
+              <tr><td>Variant Crafting Tables</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">7</td><td><span class="verdict bad">Held back: startup crash</span></td></tr>
             </tbody>
           </table>
         </div>
-        <p class="caption" data-reveal>"Loaded" means the 26.3 server started with the mod; client-side features are untested. Thermoo and Fabric Waystones were held back in the first round and load since the latest fixes. YUNG's mods now get past mod loading and data loading into world generation; the last fix there is still being tested. With the safety check off, Carved Wood and Artifacts really do crash the server at startup. The first four were tested before the newest changes and will be re-checked in the next full run.</p>
+        <p class="caption" data-reveal>"Loaded" means the server reached Done with the mod running; client-side features are not tested yet. "Held back" mods are skipped with a reason in isotope/report.txt; set load-mods-with-fatal-problems=true to try them anyway. In 1.0.1 The Lost Castle no longer gets held back by mistake, and a broken mixin hook can no longer take down a whole game class (found on Moonlight).</p>
       </section>
 
       <section class="section wrap" style="padding-top: 0">
