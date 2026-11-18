@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Real results: 33 Fabric mods run through Isotope, forwards onto 26.3 and backwards onto 26.2.">
+<meta name="theme-color" content="#0c0c0a">
 <title>Compatibility · Isotope</title>
 <link rel="icon" href="assets/isotope-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
 <link rel="stylesheet" href="assets/liquid-glass.css?v=2">
-<link rel="stylesheet" href="assets/site.css?v=13">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <script src="assets/liquid-glass.js?v=2" data-auto defer></script>
 </head>
 <body>
@@ -17,86 +21,89 @@
     <a href="index.html">Home</a>
     <a href="how-it-works.html">How it works</a>
     <a href="compatibility.html" aria-current="page">Compatibility</a>
-    <a href="downloads.html">Download</a>
     <a href="transparency.html">Transparency</a>
+    <a class="cta-link" href="downloads.html">Download</a>
   </nav>
 </header>
 
 <main>
-<h1>Real mods. Real results.</h1>
+<section class="wrap hero">
+<span class="badge">Compatibility</span>
+<h1>Real mods. <em>Real results.</em></h1>
 <p class="lead">We took Fabric mods from Modrinth built for 26.1.2 and 26.2 and booted them on a Minecraft 26.3 dedicated server, then took 26.3 mods and booted them on 26.2. Here is exactly what happened. Every "held back" mod was stopped by Isotope before it could crash; where it says "confirmed", we switched the safety check off and watched the crash happen.</p>
-
-<h2>Test setup</h2>
-<table>
-  <tbody>
-    <tr><th scope="row">Game</th><td>Minecraft 26.3 and 26.2 servers</td></tr>
-    <tr><th scope="row">Loader</th><td>Fabric 0.19.5</td></tr>
-    <tr><th scope="row">Installed normally</th><td>Fabric API, Cloth Config, CCA, Forge Config API Port, YACL</td></tr>
-    <tr><th scope="row">Isotope</th><td>1.0.1</td></tr>
-  </tbody>
-</table>
-
-<h2 id="results-heading">15 loaded. The rest held back safely.</h2>
-<p>"Left over" counts references that still did not resolve after the rewrite. A mod can load with some left over if they sit in code that rarely runs.</p>
-<div class="table-wrap">
-<table>
-  <thead><tr><th>Mod</th><th>Built for</th><th>Runs on</th><th class="num">Redirected</th><th class="num">Left over</th><th>Result</th></tr></thead>
-  <tbody>
-    <tr><td>Too Fast</td><td>26.1.2</td><td>26.3</td><td class="num">0</td><td class="num">0</td><td>Loaded</td></tr>
-    <tr><td>Fishing Real</td><td>26.1.2</td><td>26.3</td><td class="num">3</td><td class="num">1</td><td>Loaded</td></tr>
-    <tr><td>Nyf's Spiders</td><td>26.1.2</td><td>26.3</td><td class="num">11</td><td class="num">47</td><td>Loaded</td></tr>
-    <tr><td>Patchouli</td><td>26.1.2</td><td>26.3</td><td class="num">83</td><td class="num">77</td><td>Loaded</td></tr>
-    <tr><td>Thermoo</td><td>26.1.2</td><td>26.3</td><td class="num">190</td><td class="num">35</td><td>Loaded (fixed: moved registry codecs)</td></tr>
-    <tr><td>The Lost Castle</td><td>26.1.2</td><td>26.3</td><td class="num">5</td><td class="num">1</td><td>Loaded (fixed: false alarm on a lambda)</td></tr>
-    <tr><td>Medieval Buildings</td><td>26.1.2</td><td>26.3</td><td class="num">0</td><td class="num">0</td><td>Loaded</td></tr>
-    <tr><td>Fabric Waystones</td><td>26.1.2</td><td>26.3</td><td class="num">38</td><td class="num">32</td><td>Loaded, with owo-lib (not with Lithostitched installed)</td></tr>
-    <tr><td>owo-lib (library)</td><td>26.2</td><td>26.3</td><td class="num">691</td><td class="num">197</td><td>Loaded (fixed: rescued classes, soft mixins)</td></tr>
-    <tr><td>Guard Villagers</td><td>26.2</td><td>26.3</td><td class="num">31</td><td class="num">51</td><td>Loaded</td></tr>
-    <tr><td>BackSlot</td><td>26.3</td><td>26.2</td><td class="num">10</td><td class="num">15</td><td>Loaded (backwards)</td></tr>
-    <tr><td>Dragon Loot</td><td>26.3</td><td>26.2</td><td class="num">1</td><td class="num">19</td><td>Loaded (backwards)</td></tr>
-    <tr><td>Herds Panic</td><td>26.3</td><td>26.2</td><td class="num">0</td><td class="num">0</td><td>Loaded (backwards)</td></tr>
-    <tr><td>Recipe Remover</td><td>26.3</td><td>26.2</td><td class="num">0</td><td class="num">0</td><td>Loaded (backwards)</td></tr>
-    <tr><td>libz (library)</td><td>26.3</td><td>26.2</td><td class="num">6</td><td class="num">8</td><td>Loaded (backwards)</td></tr>
-    <tr><td>YUNG's API</td><td>26.1.2</td><td>26.3</td><td class="num">80</td><td class="num">37</td><td>Held back: world generation changed</td></tr>
-    <tr><td>YUNG's Better Dungeons, Paxi</td><td>26.1.2</td><td>26.3</td><td class="num">74</td><td class="num">13</td><td>Held back: need YUNG's API</td></tr>
-    <tr><td>Library Ferret</td><td>26.2</td><td>26.3</td><td class="num">20</td><td class="num">7</td><td>Held back: world generation changed (crash confirmed)</td></tr>
-    <tr><td>Better Village, Awesome Dungeon Ocean</td><td>26.2</td><td>26.3</td><td class="num">0</td><td class="num">0</td><td>Held back: need Library Ferret</td></tr>
-    <tr><td>Moonlight</td><td>26.1.2</td><td>26.3</td><td class="num">472</td><td class="num">244</td><td>Held back: class changed shape (crash confirmed)</td></tr>
-    <tr><td>Dummmmmmy, Sawmill</td><td>26.1.2</td><td>26.3</td><td class="num">11</td><td class="num">42</td><td>Held back: need Moonlight</td></tr>
-    <tr><td>Carved Wood</td><td>26.1.2</td><td>26.3</td><td class="num">37</td><td class="num">26</td><td>Held back: startup crash (fuel API removed)</td></tr>
-    <tr><td>Amendments</td><td>26.1.2</td><td>26.3</td><td class="num">121</td><td class="num">115</td><td>Held back: startup crash</td></tr>
-    <tr><td>Artifacts</td><td>26.1.2</td><td>26.3</td><td class="num">81</td><td class="num">58</td><td>Held back: class changed shape (crash confirmed)</td></tr>
-    <tr><td>Frostiful</td><td>26.1.2</td><td>26.3</td><td class="num">276</td><td class="num">133</td><td>Held back: class changed shape</td></tr>
-    <tr><td>Nature's Spirit</td><td>26.1.2</td><td>26.3</td><td class="num">185</td><td class="num">138</td><td>Held back: class changed shape</td></tr>
-    <tr><td>Regions Unexplored</td><td>26.1.2</td><td>26.3</td><td class="num">473</td><td class="num">171</td><td>Held back: class changed shape</td></tr>
-    <tr><td>Dehydration</td><td>26.3</td><td>26.2</td><td class="num">26</td><td class="num">17</td><td>Held back: startup crash (confirmed)</td></tr>
-    <tr><td>Variant Crafting Tables</td><td>26.3</td><td>26.2</td><td class="num">0</td><td class="num">7</td><td>Held back: startup crash</td></tr>
-  </tbody>
-</table>
+<div style="margin-top:48px"><div class="stats">
+<div class="stat"><span>Game</span><b>26.3 · 26.2</b><small>dedicated servers</small></div>
+<div class="stat"><span>Loader</span><b>Fabric 0.19.5</b></div>
+<div class="stat"><span>Isotope</span><b>1.0.1</b></div>
+<div class="stat"><span>Installed normally</span><b>5 libs</b><small>Fabric API, Cloth Config, CCA, Forge Config API Port, YACL</small></div>
 </div>
-<p class="muted">"Loaded" means the server reached Done with the mod running; client-side features are not tested yet. "Held back" mods are skipped with a reason in isotope/report.txt; set load-mods-with-fatal-problems=true to try them anyway. In 1.0.1 The Lost Castle no longer gets held back by mistake, and a broken mixin hook can no longer take down a whole game class (found on Moonlight).</p>
-
-<h2>What it cannot do.</h2>
+</div></section>
+<section class="wrap section" id="results-heading">
+<div class="section-head"><p class="eyebrow">Results</p>
+<h2>15 loaded. <em>The rest held back safely.</em></h2>
+<p>"Left over" counts references that still did not resolve after the rewrite. A mod can load with some left over if they sit in code that rarely runs.</p>
+</div>
+<div class="table-card"><table><thead><tr><th>Mod</th><th class="num">Built for</th><th class="num">Runs on</th><th class="num">Redirected</th><th class="num">Left over</th><th>Result</th></tr></thead><tbody>
+<tr><td>Too Fast</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>Fishing Real</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">3</td><td class="num">1</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>Nyf's Spiders</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">11</td><td class="num">47</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>Patchouli</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">83</td><td class="num">77</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>Thermoo</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">190</td><td class="num">35</td><td><span class="pill ok">Loaded (fixed: moved registry codecs)</span></td></tr>
+<tr><td>The Lost Castle</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">5</td><td class="num">1</td><td><span class="pill ok">Loaded (fixed: false alarm on a lambda)</span></td></tr>
+<tr><td>Medieval Buildings</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>Fabric Waystones</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">38</td><td class="num">32</td><td><span class="pill ok">Loaded, with owo-lib (not with Lithostitched installed)</span></td></tr>
+<tr><td>owo-lib (library)</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">691</td><td class="num">197</td><td><span class="pill ok">Loaded (fixed: rescued classes, soft mixins)</span></td></tr>
+<tr><td>Guard Villagers</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">31</td><td class="num">51</td><td><span class="pill ok">Loaded</span></td></tr>
+<tr><td>BackSlot</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">10</td><td class="num">15</td><td><span class="pill ok">Loaded (backwards)</span></td></tr>
+<tr><td>Dragon Loot</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">1</td><td class="num">19</td><td><span class="pill ok">Loaded (backwards)</span></td></tr>
+<tr><td>Herds Panic</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">0</td><td><span class="pill ok">Loaded (backwards)</span></td></tr>
+<tr><td>Recipe Remover</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">0</td><td><span class="pill ok">Loaded (backwards)</span></td></tr>
+<tr><td>libz (library)</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">6</td><td class="num">8</td><td><span class="pill ok">Loaded (backwards)</span></td></tr>
+<tr><td>YUNG's API</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">80</td><td class="num">37</td><td><span class="pill warn">Held back: world generation changed</span></td></tr>
+<tr><td>YUNG's Better Dungeons, Paxi</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">74</td><td class="num">13</td><td><span class="pill warn">Held back: need YUNG's API</span></td></tr>
+<tr><td>Library Ferret</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">20</td><td class="num">7</td><td><span class="pill warn">Held back: world generation changed (crash confirmed)</span></td></tr>
+<tr><td>Better Village, Awesome Dungeon Ocean</td><td class="num">26.2</td><td class="num">26.3</td><td class="num">0</td><td class="num">0</td><td><span class="pill warn">Held back: need Library Ferret</span></td></tr>
+<tr><td>Moonlight</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">472</td><td class="num">244</td><td><span class="pill warn">Held back: class changed shape (crash confirmed)</span></td></tr>
+<tr><td>Dummmmmmy, Sawmill</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">11</td><td class="num">42</td><td><span class="pill warn">Held back: need Moonlight</span></td></tr>
+<tr><td>Carved Wood</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">37</td><td class="num">26</td><td><span class="pill warn">Held back: startup crash (fuel API removed)</span></td></tr>
+<tr><td>Amendments</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">121</td><td class="num">115</td><td><span class="pill warn">Held back: startup crash</span></td></tr>
+<tr><td>Artifacts</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">81</td><td class="num">58</td><td><span class="pill warn">Held back: class changed shape (crash confirmed)</span></td></tr>
+<tr><td>Frostiful</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">276</td><td class="num">133</td><td><span class="pill warn">Held back: class changed shape</span></td></tr>
+<tr><td>Nature's Spirit</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">185</td><td class="num">138</td><td><span class="pill warn">Held back: class changed shape</span></td></tr>
+<tr><td>Regions Unexplored</td><td class="num">26.1.2</td><td class="num">26.3</td><td class="num">473</td><td class="num">171</td><td><span class="pill warn">Held back: class changed shape</span></td></tr>
+<tr><td>Dehydration</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">26</td><td class="num">17</td><td><span class="pill warn">Held back: startup crash (confirmed)</span></td></tr>
+<tr><td>Variant Crafting Tables</td><td class="num">26.3</td><td class="num">26.2</td><td class="num">0</td><td class="num">7</td><td><span class="pill warn">Held back: startup crash</span></td></tr>
+</tbody></table></div>
+<p class="fine" style="margin-top:14px">"Loaded" means the server reached Done with the mod running; client-side features are not tested yet. "Held back" mods are skipped with a reason in isotope/report.txt; set load-mods-with-fatal-problems=true to try them anyway. In 1.0.1 The Lost Castle no longer gets held back by mistake, and a broken mixin hook can no longer take down a whole game class (found on Moonlight).</p>
+</section>
+<section class="wrap section split" style="align-items:start">
+<div class="section-head"><p class="eyebrow">Limits</p>
+<h2>What it <em>cannot do.</em></h2>
 <p>Isotope is a compatibility layer, not a port. These are the walls it hits.</p>
-<ul>
-  <li><strong>Redesigned systems.</strong> If a system was rebuilt, the old calls have no equivalent. World-generation mods crossing 26.2 → 26.3 will generally not work.</li>
-  <li><strong>Changed behaviour.</strong> A method that kept its name but now does something different looks fine to Isotope. Only playing shows it.</li>
-  <li><strong>Data files.</strong> Recipes, loot tables and world-gen JSON are not converted yet. The game may skip an old mod's data with errors in the log.</li>
-  <li><strong>Older Minecraft.</strong> 1.21.x and earlier are obfuscated and use a different toolchain. Out of scope.</li>
-  <li><strong>Clients, so far.</strong> Only tested on a dedicated server. Rendering, screens and client mixins of rewritten mods have not run in a real client yet.</li>
-</ul>
-
-<h2>Others in this space. Some may suit you better.</h2>
-<ul>
-  <li><strong>Retromod</strong> (closest match). Rewrites old mods so they load on current Minecraft, across a much wider range of versions and loaders, and far more established. If Retromod handles your mod, use it. <a href="https://modrinth.com/mod/retromod">Retromod on Modrinth</a></li>
-  <li><strong>RetroMod (Bownlux)</strong> (similar idea). A separate project with a similar approach, targeting Minecraft 1.12.2 through 26.1. <a href="https://github.com/Bownlux/RetroMod">RetroMod on GitHub</a></li>
-  <li><strong>Connector, ViaFabricPlus</strong> (different problem). Sinytra Connector crosses mod loaders, not game versions. ViaFabricPlus lets you join servers on other versions; it does not run their mods. <a href="https://modrinth.com/mod/viafabricplus">ViaFabricPlus on Modrinth</a></li>
-</ul>
+</div>
+<div class="rows">
+<div class="row"><p class="label">A · Redesign</p><div><h3>Redesigned systems</h3><p>If a system was rebuilt, the old calls have no equivalent. World-generation mods crossing 26.2 → 26.3 will generally not work.</p></div></div>
+<div class="row"><p class="label">B · Silent</p><div><h3>Changed behaviour</h3><p>A method that kept its name but now does something different looks fine to Isotope. Only playing shows it.</p></div></div>
+<div class="row"><p class="label">C · Not yet</p><div><h3>Data files</h3><p>Recipes, loot tables and world-gen JSON are not converted yet. The game may skip an old mod's data with errors in the log.</p></div></div>
+<div class="row"><p class="label">D · Out of scope</p><div><h3>Older Minecraft</h3><p>1.21.x and earlier are obfuscated and use a different toolchain. Out of scope.</p></div></div>
+<div class="row"><p class="label">E · Untested</p><div><h3>Clients, so far</h3><p>Only tested on a dedicated server. Rendering, screens and client mixins of rewritten mods have not run in a real client yet.</p></div></div>
+</div>
+</section>
+<section class="wrap section">
+<div class="section-head"><p class="eyebrow">Other projects</p>
+<h2>Others in this space. <em>Some may suit you better.</em></h2>
+</div>
+<div class="grid ">
+<article class="card "><p class="label">Closest match</p><h3>Retromod</h3><p>Rewrites old mods so they load on current Minecraft, across a much wider range of versions and loaders, and far more established. If Retromod handles your mod, use it.</p><a class="more" href="https://modrinth.com/mod/retromod">Retromod on Modrinth →</a></article>
+<article class="card "><p class="label">Similar idea</p><h3>RetroMod (Bownlux)</h3><p>A separate project with a similar approach, targeting Minecraft 1.12.2 through 26.1.</p><a class="more" href="https://github.com/Bownlux/RetroMod">RetroMod on GitHub →</a></article>
+<article class="card "><p class="label">Different problem</p><h3>Connector, ViaFabricPlus</h3><p>Sinytra Connector crosses mod loaders, not game versions. ViaFabricPlus lets you join servers on other versions; it does not run their mods.</p><a class="more" href="https://modrinth.com/mod/viafabricplus">ViaFabricPlus on Modrinth →</a></article>
+</div>
+</section>
 </main>
 
 <footer>
-<p>&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number.</p>
-  <nav aria-label="Footer"><a href="transparency.html">Transparency</a><a href="https://github.com/ophidianp/isotope">GitHub</a><a href="https://github.com/ophidianp/isotope/releases">Releases</a></nav>
+  <p class="made"><span>Made by</span> Pavan Nemani</p>
+  <p class="fine">&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number. · <a href="https://github.com/ophidianp/isotope">GitHub</a> <a href="https://github.com/ophidianp/isotope/releases">Releases</a></p>
 </footer>
 </body>
 </html>

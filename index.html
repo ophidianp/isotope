@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Isotope runs Fabric mods built for a different Minecraft 26.x version by rewriting them for the version you play.">
+<meta name="theme-color" content="#0c0c0a">
 <title>Isotope</title>
 <link rel="icon" href="assets/isotope-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
 <link rel="stylesheet" href="assets/liquid-glass.css?v=2">
-<link rel="stylesheet" href="assets/site.css?v=13">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <script src="assets/liquid-glass.js?v=2" data-auto defer></script>
 </head>
 <body>
@@ -17,71 +21,96 @@
     <a href="index.html" aria-current="page">Home</a>
     <a href="how-it-works.html">How it works</a>
     <a href="compatibility.html">Compatibility</a>
-    <a href="downloads.html">Download</a>
     <a href="transparency.html">Transparency</a>
+    <a class="cta-link" href="downloads.html">Download</a>
   </nav>
 </header>
 
 <main>
-<h1>The mod you want, on the version you play.</h1>
+<section class="wrap hero">
+<span class="badge">Fabric compatibility mod · <b>26.1 – 26.3</b></span>
+<h1>The mod you want,<br><em>on the version you play.</em></h1>
 <p class="lead">Isotope takes a Fabric mod built for another Minecraft 26.x release and rewrites it for yours. Then it tells you, before you launch, what it could not bridge.</p>
-<div class="actions">
-  <a class="button primary" href="downloads.html">Download Isotope</a>
-  <a class="button" href="how-it-works.html">See how it works</a>
+<div class="actions"><a class="btn primary" href="downloads.html">Download Isotope ↓</a><a class="btn" href="how-it-works.html">See how it works →</a></div>
+<p class="fine">For Fabric · Minecraft 26.1 – 26.3 · forwards and backwards</p>
+<div style="margin-top:56px"><div class="stats">
+<div class="stat"><span>Built for</span><b>26.1.2</b><small>the mod's version</small></div>
+<div class="stat"><span>Running on</span><b>26.3</b><small>your game</small></div>
+<div class="stat"><span>Mods tested</span><b>33</b><small>forwards and backwards</small></div>
+<div class="stat"><span>Rules</span><b>722</b><small>class + member rules</small></div>
 </div>
-<p class="muted">For Fabric · Minecraft 26.1 – 26.3 · forwards and backwards</p>
-<ol>
-  <li>Same mod, different number</li>
-  <li>Rules from the game itself</li>
-  <li>Honest about what breaks</li>
-</ol>
-
-<h2>Same element. Different mass number.</h2>
-<p>An isotope is the same element with a different number. Isotope gives you the same mod with a different version number: it rewrites a mod made for one 26.x release so it links against the Minecraft you are actually running. <a href="how-it-works.html">Read how it works</a></p>
-<ul>
-  <li><strong>Rewrites the mod.</strong> Moved classes, renamed methods and fields, mixin targets and access wideners are pointed at their new names, one release at a time. <a href="how-it-works.html#rewrite">The rewrite</a></li>
-  <li><strong>Checks every reference.</strong> Each class, method and field the mod uses is looked up in your actual game. Whatever is still missing goes into a plain-text report. <a href="how-it-works.html#check">The check</a></li>
-  <li><strong>Holds back certain crashes.</strong> A mod that is sure to crash your game on launch is not loaded, and the report says exactly why. You can override it if you want to try. <a href="how-it-works.html#protect">The safety check</a></li>
-</ul>
-
-<h2>A few seconds of work. Cached after that.</h2>
+</div></section>
+<section class="wrap" style="padding-top:14px">
+<div class="grid ">
+<article class="card "><p class="label">01</p><h3>Same mod, different number</h3><p></p></article>
+<article class="card "><p class="label">02</p><h3>Rules from the game itself</h3><p></p></article>
+<article class="card "><p class="label">03</p><h3>Honest about what breaks</h3><p></p></article>
+</div>
+</section>
+<section class="wrap section">
+<div class="section-head"><p class="eyebrow">Why the name</p>
+<h2>Same element. <em>Different mass number.</em></h2>
+<p>An isotope is the same element with a different number. Isotope gives you the same mod with a different version number: it rewrites a mod made for one 26.x release so it links against the Minecraft you are actually running.</p>
+</div>
+<div class="grid two">
+<article class="card tall"><p class="label">01 / Rewrite</p><p class="serif">Rewrites the mod</p><p>Moved classes, renamed methods and fields, mixin targets and access wideners are pointed at their new names, one release at a time.</p><pre style="margin-top:18px">PoseStack.mulPose  →  <b>rotate</b>
+com.mojang.blaze3d →  <b>com.mojang.renderpearl</b></pre><a class="more" href="how-it-works.html#rewrite">The rewrite →</a></article>
+<article class="card "><p class="label">02 / Check</p><h3>Checks every reference</h3><p>Each class, method and field the mod uses is looked up in your actual game. Whatever is still missing goes into a plain-text report.</p><a class="more" href="how-it-works.html#check">The check →</a></article>
+<article class="card "><p class="label">03 / Protect</p><h3>Holds back certain crashes</h3><p>A mod that is sure to crash your game on launch is not loaded, and the report says exactly why. You can override it if you want to try.</p><a class="more" href="how-it-works.html#protect">The safety check →</a></article>
+</div>
+<p style="margin-top:22px"><a class="btn" href="how-it-works.html">Read how it works ↗</a></p>
+</section>
+<section class="wrap section split">
+<div class="section-head"><p class="eyebrow">What happens at launch</p>
+<h2>A few seconds of work. <em>Cached after that.</em></h2>
 <p>Isotope runs before Fabric finishes setting up mods. The first launch rewrites and checks; later launches reuse the result unless something changed.</p>
-<ol>
-  <li><strong>Find out where the mod is from.</strong> It checks which game version actually contains the classes the mod uses. Mod metadata only narrows the guess, since "26.1 or newer" says little.</li>
-  <li><strong>Step through each release.</strong> A 26.1.2 mod on 26.3 goes through 26.2 first. Each step has its own table of moves and renames, worked out from Mojang's jars.</li>
-  <li><strong>Check it against your game.</strong> Every reference is resolved the way Java would resolve it. Anything missing is listed with the classes that use it.</li>
-  <li><strong>Hold back certain crashes.</strong> If a class can no longer load, or the mod's initializer needs something that is gone, the mod stays out and the report says why.</li>
-  <li><strong>Load it like any other mod.</strong> The rewritten copy is registered with Fabric as a normal mod. Your original jar is never touched.</li>
-</ol>
-
-<h2>Two folders. That's the whole setup.</h2>
-<ol>
-  <li><strong>Install Isotope.</strong> Put the Isotope jar in your normal <code>mods</code> folder and start the game once.</li>
-  <li><strong>Add the other-version mods.</strong> Put mods for other 26.x versions in <code>isotope/mods</code>, not in <code>mods</code>. Fabric would reject them there before Isotope runs.</li>
-  <li><strong>Read the report.</strong> Start the game, then open <code>isotope/report.txt</code> to see what was redirected and what was left over.</li>
-</ol>
-<p><a href="downloads.html">Get Isotope</a></p>
-
-<h2>Any 26.x to any other 26.x it knows.</h2>
-<p>One Isotope jar runs on every 26.x version. It has rules for these three, in both directions: 26.1 – 26.1.2, 26.2 and 26.3. It needs Fabric Loader 0.19.5+ and Java 25.</p>
-<p class="muted">Small, focused mods have the best chance · see <a href="compatibility.html">Compatibility</a> for real results</p>
-
-<h2>A few quick answers.</h2>
-<div class="faq">
-  <details><summary>Will every mod work?</summary><p>No. Many changes between releases are redesigns, not renames. 26.3 rewrote world generation and loot, for example, and no rename can bridge that. Isotope reports those and holds back mods that are certain to crash. In our test of real 26.1.x mods, 7 now load (counting the owo-lib library), 3 are being fixed, and 3 are held back.</p></details>
-  <details><summary>Does it work on 1.21 or older?</summary><p>No. Before 26.1, Minecraft was obfuscated and mods used a different toolchain, so it is out of scope. For older versions, look at Retromod.</p></details>
-  <details><summary>Is it safe for my world?</summary><p>Isotope never edits your original jars, and it keeps out mods it knows will crash. A loaded mod can still misbehave where the game changed underneath it, so back up worlds you care about before trying a rewritten mod.</p></details>
-  <details><summary>Has it been tested on a client?</summary><p>Not yet. It has been tested on a 26.3 dedicated server. Client-only parts of rewritten mods (rendering, screens) are rewritten and checked the same way, but have not been run in a real client.</p></details>
 </div>
-
-<h2>One jar. Every 26.x.</h2>
+<div class="rows">
+<div class="row"><p class="label">A · Detect</p><div><h3>Find out where the mod is from</h3><p>It checks which game version actually contains the classes the mod uses. Mod metadata only narrows the guess, since "26.1 or newer" says little.</p></div></div>
+<div class="row"><p class="label">B · Rewrite</p><div><h3>Step through each release</h3><p>A 26.1.2 mod on 26.3 goes through 26.2 first. Each step has its own table of moves and renames, worked out from Mojang's jars.</p></div></div>
+<div class="row"><p class="label">C · Check</p><div><h3>Check it against your game</h3><p>Every reference is resolved the way Java would resolve it. Anything missing is listed with the classes that use it.</p></div></div>
+<div class="row"><p class="label">D · Protect</p><div><h3>Hold back certain crashes</h3><p>If a class can no longer load, or the mod's initializer needs something that is gone, the mod stays out and the report says why.</p></div></div>
+<div class="row"><p class="label">E · Load</p><div><h3>Load it like any other mod</h3><p>The rewritten copy is registered with Fabric as a normal mod. Your original jar is never touched.</p></div></div>
+</div>
+</section>
+<section class="wrap section">
+<div class="section-head"><p class="eyebrow">Getting started</p>
+<h2>Two folders. <em>That's the whole setup.</em></h2>
+</div>
+<ol class="steps">
+<li><h3>Install Isotope</h3><p>Put the Isotope jar in your normal <code>mods</code> folder and start the game once.</p></li>
+<li><h3>Add the other-version mods</h3><p>Put mods for other 26.x versions in <code>isotope/mods</code>, not in <code>mods</code>. Fabric would reject them there before Isotope runs.</p></li>
+<li><h3>Read the report</h3><p>Start the game, then open <code>isotope/report.txt</code> to see what was redirected and what was left over.</p></li>
+</ol>
+<p style="margin-top:22px"><a class="btn" href="downloads.html">Get Isotope ↗</a></p>
+</section>
+<section class="wrap section split">
+<div class="section-head"><p class="eyebrow">Where it works</p>
+<h2>Any 26.x to <em>any other 26.x it knows.</em></h2>
+<p>One Isotope jar runs on every 26.x version. It has rules for these three, in both directions.</p>
+</div>
+<article class="card "><p class="label">Supported</p><p>Small, focused mods have the best chance · see <a href="compatibility.html">Compatibility</a> for real results</p><ul class="tags"><li class="on">26.1 – 26.1.2</li><li class="on">26.2</li><li class="on">26.3</li><li>Fabric Loader 0.19.5+</li><li>Java 25</li></ul></article></section>
+<section class="wrap section split" style="align-items:start">
+<div class="section-head"><p class="eyebrow">Good to know</p>
+<h2>A few quick <em>answers.</em></h2>
+</div>
+<div class="faq">
+<details><summary>Will every mod work?</summary><p>No. Many changes between releases are redesigns, not renames. 26.3 rewrote world generation and loot, for example, and no rename can bridge that. Isotope reports those and holds back mods that are certain to crash. In our test of real 26.1.x mods, 7 now load (counting the owo-lib library), 3 are being fixed, and 3 are held back.</p></details>
+<details><summary>Does it work on 1.21 or older?</summary><p>No. Before 26.1, Minecraft was obfuscated and mods used a different toolchain, so it is out of scope. For older versions, look at Retromod.</p></details>
+<details><summary>Is it safe for my world?</summary><p>Isotope never edits your original jars, and it keeps out mods it knows will crash. A loaded mod can still misbehave where the game changed underneath it, so back up worlds you care about before trying a rewritten mod.</p></details>
+<details><summary>Has it been tested on a client?</summary><p>Not yet. It has been tested on a 26.3 dedicated server. Client-only parts of rewritten mods (rendering, screens) are rewritten and checked the same way, but have not been run in a real client.</p></details>
+</div>
+</section>
+<section class="wrap"><div class="cta">
+<h2>One jar. <em>Every 26.x.</em></h2>
 <p>Downloads come straight from the latest GitHub release.</p>
-<p><a class="button primary" href="downloads.html">Go to downloads</a></p>
+<div class="actions"><a class="btn primary" href="downloads.html">Go to downloads →</a></div>
+</div></section>
 </main>
 
 <footer>
-<p>&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number.</p>
-  <nav aria-label="Footer"><a href="transparency.html">Transparency</a><a href="https://github.com/ophidianp/isotope">GitHub</a><a href="https://github.com/ophidianp/isotope/releases">Releases</a></nav>
+  <p class="made"><span>Made by</span> Pavan Nemani</p>
+  <p class="fine">&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number. · <a href="https://github.com/ophidianp/isotope">GitHub</a> <a href="https://github.com/ophidianp/isotope/releases">Releases</a></p>
 </footer>
 </body>
 </html>

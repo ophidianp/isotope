@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Download Isotope, the Fabric mod that runs mods built for a different Minecraft 26.x version.">
+<meta name="theme-color" content="#0c0c0a">
 <title>Download · Isotope</title>
 <link rel="icon" href="assets/isotope-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
 <link rel="stylesheet" href="assets/liquid-glass.css?v=2">
-<link rel="stylesheet" href="assets/site.css?v=13">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <script src="assets/liquid-glass.js?v=2" data-auto defer></script>
 <script src="assets/releases.js?v=1" defer></script>
 </head>
@@ -18,40 +22,50 @@
     <a href="index.html">Home</a>
     <a href="how-it-works.html">How it works</a>
     <a href="compatibility.html">Compatibility</a>
-    <a href="downloads.html" aria-current="page">Download</a>
     <a href="transparency.html">Transparency</a>
+    <a class="cta-link" href="downloads.html">Download</a>
   </nav>
 </header>
 
 <main>
-<h1>One jar. Every 26.x.</h1>
+<section class="wrap hero">
+<span class="badge">Download Isotope</span>
+<h1>One jar. <em>Every 26.x.</em></h1>
 <p class="lead">Isotope itself never touches a Minecraft class, so the same download works on 26.1, 26.2 and 26.3. This page loads the newest release straight from GitHub.</p>
-
-<h2 id="release-heading">Isotope for Minecraft 26.x</h2>
-<p id="release-status" class="muted">Checking GitHub for the latest release…</p>
-<div id="release-result" hidden>
-  <p class="muted"><span id="release-kind">Latest release</span> · live release data</p>
-  <h3 id="release-name">Isotope</h3>
-  <p>Needs Fabric Loader 0.19.5+ and Java 25. No other mods required.</p>
-  <div class="actions">
-    <a class="button primary" id="download-button">Download .jar</a>
-    <a class="button" id="release-page" href="https://github.com/ophidianp/isotope/releases">Release details on GitHub</a>
+</section>
+<section class="wrap" style="padding-top:48px">
+<div class="card" style="padding:clamp(24px,4vw,40px)">
+  <p class="label">Latest build · live release data</p>
+  <p class="serif" id="release-heading">Isotope for Minecraft 26.x</p>
+  <p id="release-status" class="fine" style="margin-top:12px">Checking GitHub for the latest release…</p>
+  <div id="release-result" hidden style="margin-top:18px;padding-top:22px;border-top:1px solid var(--line)">
+    <p class="label" id="release-kind">Latest release</p>
+    <h3 id="release-name" style="font-size:22px">Isotope</h3>
+    <p>Needs Fabric Loader 0.19.5+ and Java 25. No other mods required.</p>
+    <div class="actions" style="margin-top:18px">
+      <a class="btn primary" id="download-button">Download .jar ↓</a>
+      <a class="btn" id="release-page" href="https://github.com/ophidianp/isotope/releases">View release details on GitHub ↗</a>
+    </div>
   </div>
+  <p class="fine" style="margin-top:24px">Want to browse every release, or build it yourself? <a href="https://github.com/ophidianp/isotope">Open the GitHub repository ↗</a></p>
 </div>
-<p>Want to browse every release, or build it yourself? <a href="https://github.com/ophidianp/isotope">Open the GitHub repository</a></p>
-
-<h2>Three steps to an older (or newer) mod.</h2>
-<ol>
-  <li><strong>Install Isotope.</strong> Put the Isotope jar in your normal <code>mods</code> folder, next to Fabric API if your other mods need it. Start the game once.</li>
-  <li><strong>Add mods for other versions.</strong> Put them in the new <code>isotope/mods</code> folder. Their own dependencies still need installing, ideally as builds for your version.</li>
-  <li><strong>Launch and read the report.</strong> Start the game, then open <code>isotope/report.txt</code>. Settings live in <code>config/isotope.properties</code>.</li>
+</section>
+<section class="wrap section">
+<div class="section-head"><p class="eyebrow">Getting started</p>
+<h2>Three steps <em>to an older (or newer) mod.</em></h2>
+</div>
+<ol class="steps">
+<li><h3>Install Isotope</h3><p>Put the Isotope jar in your normal <code>mods</code> folder, next to Fabric API if your other mods need it. Start the game once.</p></li>
+<li><h3>Add mods for other versions</h3><p>Put them in the new <code>isotope/mods</code> folder. Their own dependencies still need installing, ideally as builds for your version.</p></li>
+<li><h3>Launch and read the report</h3><p>Start the game, then open <code>isotope/report.txt</code>. Settings live in <code>config/isotope.properties</code>.</p></li>
 </ol>
-<p class="note"><strong>Tip:</strong> if Isotope guesses a mod's version wrong, put the jar in a folder named after its version, such as <code>isotope/mods/26.1.2/</code>.</p>
+<p class="note" style="margin-top:14px"><strong>Tip:</strong> if Isotope guesses a mod's version wrong, put the jar in a folder named after its version, such as <code>isotope/mods/26.1.2/</code>.</p>
+</section>
 </main>
 
 <footer>
-<p>&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number.</p>
-  <nav aria-label="Footer"><a href="transparency.html">Transparency</a><a href="https://github.com/ophidianp/isotope">GitHub</a><a href="https://github.com/ophidianp/isotope/releases">Releases</a></nav>
+  <p class="made"><span>Made by</span> Pavan Nemani</p>
+  <p class="fine">&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number. · <a href="https://github.com/ophidianp/isotope">GitHub</a> <a href="https://github.com/ophidianp/isotope/releases">Releases</a></p>
 </footer>
 </body>
 </html>

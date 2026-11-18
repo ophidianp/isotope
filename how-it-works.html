@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="How Isotope rewrites Fabric mods between Minecraft 26.x versions, checks them, and decides what is safe to load.">
+<meta name="theme-color" content="#0c0c0a">
 <title>How it works · Isotope</title>
 <link rel="icon" href="assets/isotope-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap">
 <link rel="stylesheet" href="assets/liquid-glass.css?v=2">
-<link rel="stylesheet" href="assets/site.css?v=13">
+<link rel="stylesheet" href="assets/site.css?v=3">
 <script src="assets/liquid-glass.js?v=2" data-auto defer></script>
 </head>
 <body>
@@ -17,55 +21,68 @@
     <a href="index.html">Home</a>
     <a href="how-it-works.html" aria-current="page">How it works</a>
     <a href="compatibility.html">Compatibility</a>
-    <a href="downloads.html">Download</a>
     <a href="transparency.html">Transparency</a>
+    <a class="cta-link" href="downloads.html">Download</a>
   </nav>
 </header>
 
 <main>
-<h1>Read the game. Rewrite the mod.</h1>
+<section class="wrap hero">
+<span class="badge">How it works</span>
+<h1>Read the game. <em>Rewrite the mod.</em></h1>
 <p class="lead">Since 26.1, Minecraft ships with real names in its code. That means the difference between two releases can be read straight off the game itself, and a mod can be pointed at the new names.</p>
-
-<h2 id="rules">Most of the game stays put. Some of it moves.</h2>
+</section>
+<section class="wrap section" id="rules">
+<div class="section-head"><p class="eyebrow">Measured from Mojang's jars</p>
+<h2>Most of the game stays put. <em>Some of it moves.</em></h2>
 <p>Isotope's table generator compares two game jars. Anything in the old one but not the new one is "missing", and it tries to prove where each missing thing went.</p>
-<table>
-  <thead><tr><th>Step</th><th>What changed</th><th class="num">Rules</th></tr></thead>
-  <tbody>
-    <tr><td>26.1.2 → 26.2</td><td><strong>Classes moved or renamed.</strong> 284 classes went missing; 188 were traced to a new home.</td><td class="num">188 class rules</td></tr>
-    <tr><td>26.2 → 26.3</td><td><strong>The biggest step so far.</strong> 501 classes went missing, most of the renderer moved to a new package; 215 were traced.</td><td class="num">215 class rules</td></tr>
-    <tr><td>Methods + fields</td><td><strong>Renames and re-signs.</strong> Across both forward steps, matched by comparing the code inside each method.</td><td class="num">319 member rules</td></tr>
-  </tbody>
-</table>
-<p class="muted">The rest of the missing classes are real redesigns with no direct replacement.</p>
-
-<h2 id="rewrite">Only confident matches become rules.</h2>
+</div>
+<div class="grid ">
+<article class="card "><p class="label">26.1.2 → 26.2</p><h3>Classes moved or renamed</h3><p>284 classes went missing; 188 were traced to a new home.</p><p style="margin-top:18px;color:var(--text);font:500 44px/1 var(--mono)">188 <small class="fine">class rules</small></p></article>
+<article class="card "><p class="label">26.2 → 26.3</p><h3>The biggest step so far</h3><p>501 classes went missing, most of the renderer moved to a new package; 215 were traced.</p><p style="margin-top:18px;color:var(--text);font:500 44px/1 var(--mono)">215 <small class="fine">class rules</small></p></article>
+<article class="card "><p class="label">Methods + fields</p><h3>Renames and re-signs</h3><p>Across both forward steps, matched by comparing the code inside each method.</p><p style="margin-top:18px;color:var(--text);font:500 44px/1 var(--mono)">319 <small class="fine">member rules</small></p></article>
+</div>
+<p class="fine" style="margin-top:14px">The rest of the missing classes are real redesigns with no direct replacement.</p>
+</section>
+<section class="wrap section split" style="align-items:start" id="rewrite">
+<div class="section-head"><p class="eyebrow">The rewrite</p>
+<h2>Only confident matches <em>become rules.</em></h2>
 <p>A wrong rule would quietly call the wrong method, which is worse than a clear "missing" in the report. So the matcher stays strict, and anything it cannot prove is reported instead.</p>
-<ul>
-  <li><strong>Classes</strong> (moved). A moved class keeps its methods, so it is matched by its member list. 26.3 moved most of <code>com.mojang.blaze3d</code> to <code>com.mojang.renderpearl</code>.</li>
-  <li><strong>Methods</strong> (renamed). A renamed method keeps its body, so the code inside is compared. <code>PoseStack.mulPose</code> became <code>rotate</code>.</li>
-  <li><strong>Fields</strong> (renamed). Matched by how they are set up (registry names survive a rename) or by which methods use them.</li>
-  <li><strong>Signatures</strong> (re-signed). When a parameter became a parent type or a method started returning a value, the call is re-pointed and adjusted so the mod never notices.</li>
-  <li><strong>Mixins and access wideners</strong> (strings). Mixins name their targets as text, like <code>"Lnet/minecraft/...;getX()D"</code>. Those strings are rewritten too, along with access-widener lines.</li>
-</ul>
-
-<h2>When a machine can't prove it, a person checks it.</h2>
+</div>
+<div class="rows">
+<div class="row"><p class="label">A · Moved</p><div><h3>Classes</h3><p>A moved class keeps its methods, so it is matched by its member list. 26.3 moved most of <code>com.mojang.blaze3d</code> to <code>com.mojang.renderpearl</code>.</p></div></div>
+<div class="row"><p class="label">B · Renamed</p><div><h3>Methods</h3><p>A renamed method keeps its body, so the code inside is compared. <code>PoseStack.mulPose</code> became <code>rotate</code>.</p></div></div>
+<div class="row"><p class="label">C · Renamed</p><div><h3>Fields</h3><p>Matched by how they are set up (registry names survive a rename) or by which methods use them.</p></div></div>
+<div class="row"><p class="label">D · Re-signed</p><div><h3>Signatures</h3><p>When a parameter became a parent type or a method started returning a value, the call is re-pointed and adjusted so the mod never notices.</p></div></div>
+<div class="row"><p class="label">E · Strings</p><div><h3>Mixins and access wideners</h3><p>Mixins name their targets as text, like <code>"Lnet/minecraft/...;getX()D"</code>. Those strings are rewritten too, along with access-widener lines.</p></div></div>
+</div>
+</section>
+<section class="wrap section split" style="align-items:start">
+<div class="section-head"><p class="eyebrow">Hand-written rules</p>
+<h2>When a machine can't prove it, <em>a person checks it.</em></h2>
 <p>A few changes can't be matched automatically. Those get hand-written rules, each verified against both game jars and explained next to the rule. Two kinds exist so far:</p>
-<pre><b>PushReaction.DESTROY</b>  →  POPPED       201 of 201 blocks agree
+</div>
+<div><pre><b>PushReaction.DESTROY</b>  →  POPPED       201 of 201 blocks agree
 <b>PushReaction.BLOCK</b>    →  IMMOVEABLE   11 of 11 blocks agree
 <b>simpleCodec(...)</b>      →  null         codecs were removed in 26.3</pre>
-<p>The first kind is a rename proven by usage: 26.3 renamed <em>and reordered</em> every <code>PushReaction</code> value, so matching by position would have been wrong. The second is a <strong>stub</strong>: 26.3 removed block codecs entirely, but old mods still build one when they load, so they get <code>null</code> instead of crashing. Stubs are only used when the game no longer reads the value at all.</p>
-
-<h2 id="deeper">When the game changed shape, not just names.</h2>
+<p class="muted" style="margin-top:18px">The first kind is a rename proven by usage: 26.3 renamed <em>and reordered</em> every <code>PushReaction</code> value, so matching by position would have been wrong. The second is a <strong>stub</strong>: 26.3 removed block codecs entirely, but old mods still build one when they load, so they get <code>null</code> instead of crashing. Stubs are only used when the game no longer reads the value at all.</p></div></section>
+<section class="wrap section" id="deeper">
+<div class="section-head"><p class="eyebrow">Beyond renames</p>
+<h2>When the game changed shape, <em>not just names.</em></h2>
 <p>Testing real mods showed where renames are not enough. Each of these fixes came from a real failure, and each is checked against Mojang's own game before it ships.</p>
-<ul>
-  <li><strong>Data files are converted.</strong> 26.3 changed the format of loot tables, advancements and world-gen data. Isotope converts a mod's files; run over Mojang's own 26.2 files, the result matches Mojang's 26.3 files for 99.7% of loot tables and 99.3% of advancements.</li>
-  <li><strong>One bad method no longer sinks a class.</strong> Java rejects a whole class if one method needs something that is gone. Isotope runs Java's own check first and replaces only that method, so the rest of the class still works.</li>
-  <li><strong>Classes that became interfaces.</strong> Mojang turned structure processors, placements and placement modifiers into interfaces that hand out their codec directly. Isotope reshapes the mod's classes to match and bridges the old "type" objects.</li>
-  <li><strong>Colored blocks became collections.</strong> 26.2 replaced 460 fields like <code>WHITE_WOOL</code> with collections like <code>WOOL.white()</code>. Isotope rewrites every use, after confirming each entry is the very same block.</li>
-</ul>
-
-<h2 id="check">Resolve everything. Before Java has to.</h2>
+</div>
+<div class="grid two">
+<article class="card "><p class="label">A · Data</p><h3>Data files are converted</h3><p>26.3 changed the format of loot tables, advancements and world-gen data. Isotope converts a mod's files; run over Mojang's own 26.2 files, the result matches Mojang's 26.3 files for 99.7% of loot tables and 99.3% of advancements.</p></article>
+<article class="card "><p class="label">B · Rescue</p><h3>One bad method no longer sinks a class</h3><p>Java rejects a whole class if one method needs something that is gone. Isotope runs Java's own check first and replaces only that method, so the rest of the class still works.</p></article>
+<article class="card "><p class="label">C · Bridge</p><h3>Classes that became interfaces</h3><p>Mojang turned structure processors, placements and placement modifiers into interfaces that hand out their codec directly. Isotope reshapes the mod's classes to match and bridges the old "type" objects.</p></article>
+<article class="card "><p class="label">D · Colors</p><h3>Colored blocks became collections</h3><p>26.2 replaced 460 fields like <code>WHITE_WOOL</code> with collections like <code>WOOL.white()</code>. Isotope rewrites every use, after confirming each entry is the very same block.</p></article>
+</div>
+</section>
+<section class="wrap section" id="check">
+<div class="section-head"><p class="eyebrow">The check</p>
+<h2>Resolve everything. <em>Before Java has to.</em></h2>
 <p>Java links lazily: a missing method only throws when that line runs, maybe an hour into play. Isotope does the same lookups up front, for every instruction, and writes the result to <code>isotope/report.txt</code>.</p>
+</div>
 <pre>== carved_wood  [Carved Wood-fabric-26.1-1.9.7-B.jar]
    built for Minecraft 26.1.2, running on 26.3
    33 references redirected, 7 of 100 classes rewritten
@@ -76,20 +93,29 @@
 
    removed game APIs - uses now get null / 0 instead (1):
      - BlockBehaviour.simpleCodec(...) - per-block codecs were removed in 26.3</pre>
-
-<h2 id="protect">Some crashes are certain. Those mods stay out.</h2>
+</section>
+<section class="wrap section" id="protect">
+<div class="section-head"><p class="eyebrow">The safety check</p>
+<h2>Some crashes are certain. <em>Those mods stay out.</em></h2>
 <p>A mod that would crash on every launch is held back by default, along with anything that needs it. Set <code>load-mods-with-fatal-problems=true</code> to try anyway.</p>
-<ul>
-  <li><strong>Class changed shape</strong> (fatal). The mod extends a game class that has since become final, sealed or an interface. Java refuses to load that class at all. 26.3 sealed <code>Holder</code> and turned <code>Feature</code> into an interface.</li>
-  <li><strong>Fails at startup</strong> (fatal). Isotope follows the mod's own code from its initializer. If something on that path no longer exists, the crash happens on every launch, so it is not a "maybe".</li>
-  <li><strong>Everything else is reported</strong> (reported). A missing method in a rarely used corner may never run. Those mods load, and the report lists where they could fail.</li>
-  <li><strong>Mixins that miss are skipped</strong> (lenient). By default, a hook that no longer fits is skipped with a log line instead of crashing. The feature behind it won't work.</li>
-</ul>
+</div>
+<div class="grid two">
+<article class="card "><p class="label">A · Fatal</p><h3>Class changed shape</h3><p>The mod extends a game class that has since become final, sealed or an interface. Java refuses to load that class at all. 26.3 sealed <code>Holder</code> and turned <code>Feature</code> into an interface.</p></article>
+<article class="card "><p class="label">B · Fatal</p><h3>Fails at startup</h3><p>Isotope follows the mod's own code from its initializer. If something on that path no longer exists, the crash happens on every launch, so it is not a "maybe".</p></article>
+<article class="card "><p class="label">C · Reported</p><h3>Everything else is reported</h3><p>A missing method in a rarely used corner may never run. Those mods load, and the report lists where they could fail.</p></article>
+<article class="card "><p class="label">D · Lenient</p><h3>Mixins that miss are skipped</h3><p>By default, a hook that no longer fits is skipped with a log line instead of crashing. The feature behind it won't work.</p></article>
+</div>
+</section>
+<section class="wrap"><div class="cta">
+<h2>One jar. <em>Every 26.x.</em></h2>
+<p>Downloads come straight from the latest GitHub release.</p>
+<div class="actions"><a class="btn primary" href="downloads.html">Go to downloads →</a></div>
+</div></section>
 </main>
 
 <footer>
-<p>&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number.</p>
-  <nav aria-label="Footer"><a href="transparency.html">Transparency</a><a href="https://github.com/ophidianp/isotope">GitHub</a><a href="https://github.com/ophidianp/isotope/releases">Releases</a></nav>
+  <p class="made"><span>Made by</span> Pavan Nemani</p>
+  <p class="fine">&copy; Pavan Nemani · All Rights Reserved (ARR) · Same mod. Different number. · <a href="https://github.com/ophidianp/isotope">GitHub</a> <a href="https://github.com/ophidianp/isotope/releases">Releases</a></p>
 </footer>
 </body>
 </html>
