@@ -273,3 +273,5 @@ different hue. Source: `branding/icon.svg`.
 All rights reserved; see `LICENSE`. Minecraft is a trademark of Mojang AB.
 Isotope is not affiliated with Mojang or Microsoft, and contains none of the
 game's code: the tables hold names only.
+
+proof that a human did some of this btw
