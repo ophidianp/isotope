@@ -19,8 +19,9 @@ every build and wants to learn the code, so explain non-obvious changes.
   website branch, bump the `?v=` cache key on the matching tag in every page.
 - Releases: attach the mod `.jar` (not `-sources.jar`); the download page
   shows the newest release with a jar, pre-releases included.
-- Mod ID / package: `isotope` / `com.isotope`. Brand: violet `#B79CF0`,
-  white atom glyph (`branding/icon.svg`).
+- Mod ID / package: `isotope` / `com.isotope`. Brand: violet `#B79CF0`
+  (website accent; the icon tile is the deeper `#5B3CC4`), white slanted "i"
+  from the website wordmark (`branding/icon.svg`).
 
 ## How it works (read before changing anything)
 1. `boot/IsotopeAdapter` is a Fabric *language adapter*. Fabric Loader

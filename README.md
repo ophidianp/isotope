@@ -264,9 +264,10 @@ java -cp "$(./gradlew -q printDiffgenClasspath | tail -1)" com.isotope.tools.Cli
 
 ## Brand
 
-Violet `#B79CF0` tile, white `#FEFEFE` atom with a two-particle nucleus: one
-solid, one hollow (the extra neutron). Same recipe as Chlorine's icon, in a
-different hue. Source: `branding/icon.svg`.
+Violet `#5B3CC4` tile with a white slanted "i", taken from the website's
+one-piece "isotope" wordmark (made on the `website` branch by
+`brand/logo_gen.py`). The same icon is the website's favicon. Source:
+`branding/icon.svg`.
 
 ## Licence
 
