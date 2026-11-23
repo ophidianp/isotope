@@ -6,6 +6,8 @@ on:
       - website
     paths:
       - "*.html"
+      - "*.svg"
+      - "*.png"
       - "assets/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
