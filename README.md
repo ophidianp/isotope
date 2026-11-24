@@ -8,7 +8,6 @@ repository root to https://ophidianp.github.io/isotope/.
 - **How it works** — `how-it-works.html`
 - **Compatibility** — `compatibility.html` (real test results, limits, other projects)
 - **Download** — `downloads.html` (newest GitHub Release, loaded live)
-- **Transparency** — `transparency.html`
 - **404** — `404.html`
 
 Shared assets: `assets/site.css` (the whole design: the Mouse 33 layout and motion,
